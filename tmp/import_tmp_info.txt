@@ -1,0 +1,23 @@
+http://all.baiyug.cn:2021/vip_all/url.php?xml=http://www.iqiyi.com/v_19rrok5ncc.html?vfm=2008_aldbd&md5=ab596537258ab5d68e8a9a6bbb87loij&type=auto&hd=cq&wap=0&siteuser=&lg=&sohuuid=
+
+https://www.iqiyi.com/v_19rrok5ncc.html?vfm=2008_aldbd#curid=385420800_d21f47e93edd284b49fa7f0d6d6df08c
+https://www.iqiyi.com/v_19rrok5n98.html?vfm=2008_aldbd#curid=385421200_c59c8113438f80d2ae4dab2fdb5e8d5d
+
+http://all.baiyug.cn:2021/vip_all/url.php
+
+
+<input type="hidden" id="hdMd5" value="EFBFCB31D5BACE6BB5793A529254424E" />
+
+
+	$.post("url.php", {"id": "http://www.iqiyi.com/v_19rrok5n98.html?vfm=2008_aldbd","type": "auto","siteuser": '',"md5": sign($('#hdMd5').val()),"hd":"","lg":""},
+  
+  
+  EFBFCB31D5BACE6BB5793A529254424E
+  ab596537258ab5d68e8a9a6bbb87loij
+  ab59078d678ab5d61639566ac663loij
+  EFBFCB31D5BACE6BB5793A529254424E
+  
+  ffcba8bba444f065b18b388402d00e95
+  ffcba8bba444f065b18b388402d00e95
+  
+  http://www.iqiyi.com/v_19rrok4igk.html?vfm=2008_aldbd
