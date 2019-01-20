@@ -1,12 +1,14 @@
 # -*- coding:utf-8 -*-
-import json, requests
-import chardet
-import gzip
+import os, requests
 import re
 import GetVid.GetVid
 import GetSign.GetSign
 import GetKey.GetKey
+import RedirectOut.RedirectOut
+import time
 
+
+RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
 textmod={ "xml": "http://www.iqiyi.com/v_19rrok5n98.html?vfm=2008_aldbd",
 "md5": "ab59a7e5488ab5d664e3e74ddce8loij",
 "type": "auto",
@@ -25,11 +27,18 @@ header_dict = {"Accept": "application/json, text/javascript, */*; q=0.01",
 "X-Requested-With": "ShockwaveFlash/32.0.0.101"
 }
 url='http://all.baiyug.cn:2021/vip_all/url.php'
-
+store_dir = "D:\\movies\\haizeiwang"
+check_dirs = [store_dir, "..\\Get_Vip_Vedio.orig"]
+file_list=[]
+for dir in check_dirs:
+  file_list=file_list.extend(os.listdir(dir))
 info = GetVid.GetVid.GetSens()
 keys = info.keys()
 keys.sort(cmp=lambda x,y: cmp(int(x[:-1], 10), int(y[:-1], 10)))
 for sen in keys:
+  if file_list.count("%s_%d.f4v" % (sen, 0)):
+    print "file %s_0.f4v exist! So download next sen!" %sen
+    continue
   textmod['xml'] = info[sen]
   textmod['md5'] = GetSign.GetSign.GetSign(GetKey.GetKey.GetKey(info[sen]))
   header_dict['Referer'] = "http://all.baiyug.cn:2021/vip_all/index.php?url=%s" % info[sen]
@@ -50,7 +59,7 @@ for sen in keys:
     print req2.reason
     # print req.content
 
-    fd = open("%s_%d.f4v" % (sen, i), "wb")
+    fd = open(os.path.join(store_dir, "%s_%d.f4v" % (sen, i)), "wb")
     fd.write(req2.content)
     fd.close()
     req2.close()
