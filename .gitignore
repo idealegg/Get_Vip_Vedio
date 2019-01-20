@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 
 .f4v
+.ts
