@@ -9,6 +9,7 @@ import pprint
 import time
 from selenium.webdriver.common.by import By
 import traceback
+import chardet
 
 
 executable_path = 'phantomjs-2.1.1-windows\\bin\\phantomjs.exe'
@@ -79,12 +80,14 @@ def GetSens():
   sen_info_path = "sens_info.txt"
   info={}
   if os.path.exists(sen_info_path):
-    fd = open(sen_info_path, "r")
+    fd = open(sen_info_path, "rb")
     for line in fd:
       line.strip().strip()
       if line:
-        fields = line.split(" ")
-        info[fields[0].decode('utf8')] = fields[1].strip().decode('utf8')
+        print chardet.detect(line)
+        line2 = line.decode('utf-8')
+        fields = line2.split(" ")
+        info[fields[0]] = fields[1].strip()
     fd.close()
     return info
   try:

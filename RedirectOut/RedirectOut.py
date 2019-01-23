@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import sys
+import chardet
 
 
 class __redirection__:
@@ -13,7 +14,10 @@ class __redirection__:
 
     def write(self, output_stream):
         sys.__stdout__.write(output_stream)
-        self.fd.write(output_stream)
+        if type(output_stream) is not unicode:
+          self.fd.write(output_stream.decode(chardet.detect(output_stream)['encoding']).encode('utf-8'))
+        else:
+          self.fd.write(output_stream.encode('utf-8'))
 
     def flush(self):
         sys.__stdout__.flush()

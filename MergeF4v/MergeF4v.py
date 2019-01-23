@@ -15,9 +15,13 @@ st_pattern = re.compile('lasttimestamp\s*:\s*(\d+)')
 
 def convert2ts(f4v):
   ret = [None, 0]
+  print f4v
+  print type(f4v)
   ts = os.path.basename(f4v)
   ts = ts.replace('f4v', 'ts')
-  fd = os.popen('avconv -i %s -c copy -bsf:v h264_mp4toannexb -f mpegts -y %s 2>&1' % (f4v, ts))
+  print ts
+  print type(ts)
+  fd = os.popen('avconv -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts -y "%s" 2>&1' % (f4v, ts))
   for line in fd:
     print line
     # lasttimestamp   : 374
@@ -41,6 +45,7 @@ def concatf4v(ts_list, durition, target):
 def merge(f4v_list, target):
   ts_list = []
   durition = 0
+  print f4v_list
   for f4v in f4v_list:
     print f4v
     ts, dur = convert2ts(f4v)
@@ -53,20 +58,21 @@ if __name__ == "__main__":
   import RedirectOut.RedirectOut
   import time
   # target = "C:\\works\\qsv2flv\\merge"
-  store_dir = "D:\\movies\\haizeiwang"
-  check_dirs = [store_dir, "C:\\works\\Get_Vip_Vedio.orig"]
-  target = "D:\\movies\\haizeiwang\\merge"
+  store_dir = r"C:\Downloads\store"
+  check_dirs = [store_dir, "C:\\works\\Get_Vip_Vedio.orig", "D:\\movies\\haizeiwang\\lost", r"D:\movies\haizeiwang\1_76"]
+  target = r"C:\Downloads\merge"
   RedirectOut.RedirectOut.__redirection__(os.path.join(target, 'out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S")))
   # file_list = map(lambda x: os.path.join(target, x), map(lambda x: '78_%1d.f4v' % x, range(4)))
   sens = {}
-  for file in os.listdir(check_dirs[1]):
+  index = 0 # choose source file
+  for file in os.listdir(check_dirs[index]):
     if file.endswith('.f4v'):
       key = file[:-6]
       if sens.has_key(key):
-        sens[key].append(os.path.join(check_dirs[1], file))
+        sens[key].append(os.path.join(check_dirs[index], file))
       else:
         sens[key] = []
-        sens[key].append(os.path.join(check_dirs[1], file))
+        sens[key].append(os.path.join(check_dirs[index], file))
   keys = sens.keys()
   keys.sort(cmp=lambda x, y: cmp(int(x[:-2], 10), int(y[:-2], 10)))
   for key in keys:
