@@ -76,7 +76,7 @@ def nochecked1(checked, driver):
   return elem
 
 
-def GetSens():
+def GetSens(url):
   sen_info_path = "sens_info.txt"
   info={}
   if os.path.exists(sen_info_path):
@@ -91,7 +91,7 @@ def GetSens():
     fd.close()
     return info
   try:
-    url = 'https://www.baidu.com/s?wd=%E6%B5%B7%E8%B4%BC%E7%8E%8B&rsv_spt=1&rsv_iqid=0xbffec5ef00005e64&issp=1&f=3&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_enter=1&oq=python%2520get%25E8%25AF%25B7%25E6%25B1%2582%25E5%25B8%25A6%25E5%258F%2582%25E6%2595%25B0&rsv_t=28a94GR7HpLTzNrPlxmkECd%2FH7%2FxLVUT%2Fl7nNZg2lvXyLYGYmSm%2FWmgmJU%2BHYzdTE192&inputT=5673&rsv_pq=c94fc4ed00034890&rsv_sug3=21&rsv_sug1=22&rsv_sug7=101&rsv_sug2=1&prefixsug=ha&rsp=0&rsv_sug4=7286'
+    #url = 'https://www.baidu.com/s?wd=%E6%B5%B7%E8%B4%BC%E7%8E%8B&rsv_spt=1&rsv_iqid=0xbffec5ef00005e64&issp=1&f=3&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_enter=1&oq=python%2520get%25E8%25AF%25B7%25E6%25B1%2582%25E5%25B8%25A6%25E5%258F%2582%25E6%2595%25B0&rsv_t=28a94GR7HpLTzNrPlxmkECd%2FH7%2FxLVUT%2Fl7nNZg2lvXyLYGYmSm%2FWmgmJU%2BHYzdTE192&inputT=5673&rsv_pq=c94fc4ed00034890&rsv_sug3=21&rsv_sug1=22&rsv_sug7=101&rsv_sug2=1&prefixsug=ha&rsp=0&rsv_sug4=7286'
     driver = init_driver()
     putUrl(driver, url)
     plus_open = driver.find_element_by_class_name('op-zx-new-tvideo-more')
@@ -100,14 +100,15 @@ def GetSens():
     plus_open.click()
     time.sleep(1.0)
     sens = driver.find_elements(By.XPATH,"//div[@class='op-zx-new-tvideo-juhe-link OP_LOG_OTHERS']")
-    opened = driver.find_element(By.XPATH,"//div[@class='op-zx-new-tvideo-juhe-link op-zx-new-tvideo-juhe-cur-link OP_LOG_OTHERS']")
+    openeds = driver.find_elements(By.XPATH,"//div[@class='op-zx-new-tvideo-juhe-link op-zx-new-tvideo-juhe-cur-link OP_LOG_OTHERS']")
     checked = {}
     for i in range(len(sens)):
       print "No opened [%d]: %s\n" % (i, sens[i].text)
       print sens[i].text
       checked[sens[i].text] = False
-    print "opened: %s\n" %opened.text
-    checked[opened.text] = True
+    if openeds:
+      print "opened: %s\n" %openeds[0].text
+      checked[opened[0].text] = True
     info = GetSen(driver, info)
     while not allchecked(checked):
       elem = nochecked1(checked, driver)
@@ -124,8 +125,9 @@ def GetSens():
     fd.close()
     return info
   except Exception, e:
-    driver.quit()
     traceback.print_exc()
+    print e.message
+    driver.quit()
     os.unlink(sen_info_path)
     raise
   finally:

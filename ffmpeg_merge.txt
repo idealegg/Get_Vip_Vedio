@@ -1,0 +1,28 @@
+setpts 
+
+‘-itsoffset offset (input)’
+Set the input time offset in seconds. [-]hh:mm:ss[.xxx] syntax is also supported. The offset is added to the timestamps of the input files. Specifying a positive offset means that the corresponding streams are delayed by offset seconds.
+
+
+‘-r[:stream_specifier] fps (input/output,per-stream)’
+Set frame rate (Hz value, fraction or abbreviation).
+
+As an input option, ignore any timestamps stored in the file and instead generate timestamps assuming constant frame rate fps.
+
+As an output option, duplicate or drop input frames to achieve constant output frame rate fps (note that this actually causes the fps filter to be inserted to the end of the corresponding filtergraph).
+
+
+‘-copyts’
+Copy timestamps from input to output.
+
+‘-copytb’
+Copy input stream time base from input to output when stream copying.
+
+# Start counting the PTS from zero
+setpts=expr=PTS-STARTPTS
+
+
+ffmpeg -i input1.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input1.ts
+ffmpeg -i input2.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input2.ts
+ffmpeg -i input3.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input3.ts
+ffmpeg -i "concat:input1.ts|input2.ts|input3.ts" -c copy -bsf:a aac_adtstoasc -movflags +faststart output.mp4

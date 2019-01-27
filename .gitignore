@@ -103,5 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-.f4v
-.ts
+*.f4v
+*.ts
+*.log
+*.m3u8
