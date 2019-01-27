@@ -32,26 +32,44 @@ def convert2ts(f4v):
   return ret
 
 
-def concatf4v(ts_list, durition, target):
-  fd = os.popen('avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart -ss 00:02:10 -t %d -y %s' %
-                ('|'.join(ts_list), durition - 240, os.path.join(target, ts_list[0].replace('_0', '').replace('ts', 'mp4'))))
+def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
+  origin = os.getcwd()
+  new_dir = os.path.dirname(ts_list[0])
+  if not new_dir:
+    new_dir = '.'
+  print "origin: %s, new dir: %s" % (origin, new_dir)
+  os.chdir(new_dir)
+  ts_list_new = map(lambda x: os.path.basename(x), ts_list)
+  print "concatf4v: ts_list: [%s]" % '|'.join(ts_list_new)
+  print "durition: %d, target: %s, convert_flag: %s, cut_flag: %s" % (durition, target, convert_flag, cut_flag)
+  cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
+                 '|'.join(ts_list_new),
+                 "-ss 00:02:10 -t %d" % (durition - 240) if cut_flag else '',
+                 os.path.join(target, ts_list_new[0].replace('_0', '').replace('ts', 'mp4')))
+  print "cmd: %s" % cmd
+  fd = os.popen(cmd)
   for line in fd:
     print line
-  for ts in ts_list:
-    os.remove(ts)
   fd.close()
+  os.chdir(origin)
+  if convert_flag:
+    for ts in ts_list:
+      os.remove(ts)
 
 
-def merge(f4v_list, target):
+def merge(src_list, target, convert_flag=True, cut_flag=True):
   ts_list = []
   durition = 0
-  print f4v_list
-  for f4v in f4v_list:
-    print f4v
-    ts, dur = convert2ts(f4v)
-    ts_list.append(ts)
-    durition = dur
-  concatf4v(ts_list, durition, target)
+  print src_list
+  if convert_flag:
+    for f4v in src_list:
+      print f4v
+      ts, dur = convert2ts(f4v)
+      ts_list.append(ts)
+      durition = dur
+  else:
+    ts_list = src_list
+  concatf4v(ts_list, durition, target, convert_flag, cut_flag)
 
 
 if __name__ == "__main__":

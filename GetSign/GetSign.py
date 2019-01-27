@@ -20,7 +20,9 @@ def GetSign(str):
   abc = get_token(str + "!abef987")
   _a = abc[10:22]
   _b = abc[24:30]
-  return "".join(["ab59", _b, _0x9ba7[10], _a, _0x9ba7[11]])
+  sign = "".join(["ab59", _b, _0x9ba7[10], _a, _0x9ba7[11]])
+  print "GetSign: sign[%s]" % sign
+  return sign
 
 if __name__ == "__main__":
   print GetSign('a16db66fa7b078b604db14324ae7cea9')

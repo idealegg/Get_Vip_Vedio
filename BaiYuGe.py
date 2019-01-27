@@ -99,6 +99,18 @@ class getSens(threading.Thread):
     else:
       return None, None
 
+  def sen_number_equal(self, f, s):
+    i = 0
+    sth_equal = False
+    while i < min(len(f), len(s)):
+      if not f[i].isdigit() and not s[i].isdigit():
+        return sth_equal
+      if f[i] != s[i]:
+        return False
+      sth_equal = True
+      i += 1
+    return sth_equal
+
   def run(self):
     global done_file_list
     req = None
@@ -109,7 +121,11 @@ class getSens(threading.Thread):
           f_list = []
           if not done_file_list.count("%s_%d.f4v" % (sen, 0)):
             self.textmod['xml'] = info
-            self.textmod['md5'] = GetSign.GetSign.GetSign(GetKey.GetKey.GetKey(info))
+            self.textmod['md5'] = GetSign.GetSign.GetSign(
+              GetKey.GetKey.GetKey(url='http://all.baiyug.cn:2021/vip_all/index.php',
+                                   addr=info,
+                                   host='all.baiyug.cn:2021',
+                                   ref='http://app.baiyug.cn:2019/vip/iqiyi.php?url='))
             self.header_dict['Referer'] = "http://all.baiyug.cn:2021/vip_all/index.php?url=%s" % info
             req = requests.get(url=self.url, params=self.textmod,  headers=self.header_dict)
             print req.encoding
@@ -136,10 +152,11 @@ class getSens(threading.Thread):
             if not f_list:
               f_n = 0
               for file in os.listdir(self.store_dir):
-                if file.endswith('.f4v') and int(file[:-8], 10) == int(sen[:-1]):
+                if file.endswith('.f4v') and self.sen_number_equal(file, sen):
                   f_n += 1
                   f_list.append(os.path.join(self.store_dir,file))
               #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
+            f_list.sort(key=lambda x: int(x[x.rfind('_') + 1:-4], 10))
             MergeF4v.MergeF4v.merge(f_list, self.target_dir)
           else:
             print "file %s.mp4 exist! So not merge again!" % sen
@@ -180,12 +197,14 @@ def all_task_finished(ths):
 
 if __name__ == "__main__":
   RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  store_dir = r"C:\Downloads\store"
+  store_dir = r"C:\Downloads\store\fqcl"
   # store_dir = "D:\\movies\\haizeiwang\\lost"
-  target_dir = r"C:\Downloads\merge"
-  thn = 1
+  target_dir = r"C:\Downloads\merge\fqcl"
+  url = 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=2&tn=baiduhome_pg&wd=%E9%A3%8E%E8%B5%B7%E9%95%BF%E6%9E%97&rsv_spt=1&oq=python%2520print&rsv_pq=9fe2cecf0009fcd3&rsv_t=5e590W2QAZ1p0%2FIW8C7sQ4ELeznGgBUqi9aPPYkhkradNgRwRpi39n%2B%2Bkd%2FrMPWls%2BTc&rqlang=cn&rsv_enter=1&rsv_sug3=9&rsv_sug1=6&rsv_sug7=100&bs=python%20print'
+  #url = 'https://www.baidu.com/s?wd=%E6%B5%B7%E8%B4%BC%E7%8E%8B&rsv_spt=1&rsv_iqid=0xbffec5ef00005e64&issp=1&f=3&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_enter=1&oq=python%2520get%25E8%25AF%25B7%25E6%25B1%2582%25E5%25B8%25A6%25E5%258F%2582%25E6%2595%25B0&rsv_t=28a94GR7HpLTzNrPlxmkECd%2FH7%2FxLVUT%2Fl7nNZg2lvXyLYGYmSm%2FWmgmJU%2BHYzdTE192&inputT=5673&rsv_pq=c94fc4ed00034890&rsv_sug3=21&rsv_sug1=22&rsv_sug7=101&rsv_sug2=1&prefixsug=ha&rsp=0&rsv_sug4=7286'
+  thn = 2
   getExistFile([store_dir, target_dir])
-  all_task_info = GetVid.GetVid.GetSens()
+  all_task_info = GetVid.GetVid.GetSens(url)
   print all_task_info
   to_finish_keys = all_task_info.keys()
   to_finish_keys.sort(cmp=lambda x,y: cmp(int(x[:-1], 10), int(y[:-1], 10)))
