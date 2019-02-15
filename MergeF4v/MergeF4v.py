@@ -40,12 +40,16 @@ def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
   print "origin: %s, new dir: %s" % (origin, new_dir)
   os.chdir(new_dir)
   ts_list_new = map(lambda x: os.path.basename(x), ts_list)
+  if not os.path.isdir(target):
+    new_target = target
+  else:
+    new_target = os.path.join(target, ts_list_new[0].replace('_0', '').replace('ts', 'mp4'))
   print "concatf4v: ts_list: [%s]" % '|'.join(ts_list_new)
-  print "durition: %d, target: %s, convert_flag: %s, cut_flag: %s" % (durition, target, convert_flag, cut_flag)
+  print "durition: %d, target: %s, convert_flag: %s, cut_flag: %s" % (durition, new_target, convert_flag, cut_flag)
   cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
                  '|'.join(ts_list_new),
                  "-ss 00:02:10 -t %d" % (durition - 240) if cut_flag else '',
-                 os.path.join(target, ts_list_new[0].replace('_0', '').replace('ts', 'mp4')))
+                 new_target)
   print "cmd: %s" % cmd
   fd = os.popen(cmd)
   for line in fd:
