@@ -157,7 +157,7 @@ class getSens(threading.Thread):
                   f_list.append(os.path.join(self.store_dir,file))
               #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
             f_list.sort(key=lambda x: int(x[x.rfind('_') + 1:-4], 10))
-            MergeF4v.MergeF4v.merge(f_list, self.target_dir)
+            MergeF4v.MergeF4v.merge(f_list, self.target_dir, convert_flag=True, cut_flag=False)
           else:
             print "file %s.mp4 exist! So not merge again!" % sen
         else:
@@ -197,9 +197,9 @@ def all_task_finished(ths):
 
 if __name__ == "__main__":
   RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  store_dir = r"C:\Downloads\store\fqcl"
+  store_dir = r"C:\Downloads\store\movies"
   # store_dir = "D:\\movies\\haizeiwang\\lost"
-  target_dir = r"C:\Downloads\merge\fqcl"
+  target_dir = r"C:\Downloads\merge\movies"
   url = 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=2&tn=baiduhome_pg&wd=%E9%A3%8E%E8%B5%B7%E9%95%BF%E6%9E%97&rsv_spt=1&oq=python%2520print&rsv_pq=9fe2cecf0009fcd3&rsv_t=5e590W2QAZ1p0%2FIW8C7sQ4ELeznGgBUqi9aPPYkhkradNgRwRpi39n%2B%2Bkd%2FrMPWls%2BTc&rqlang=cn&rsv_enter=1&rsv_sug3=9&rsv_sug1=6&rsv_sug7=100&bs=python%20print'
   #url = 'https://www.baidu.com/s?wd=%E6%B5%B7%E8%B4%BC%E7%8E%8B&rsv_spt=1&rsv_iqid=0xbffec5ef00005e64&issp=1&f=3&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_enter=1&oq=python%2520get%25E8%25AF%25B7%25E6%25B1%2582%25E5%25B8%25A6%25E5%258F%2582%25E6%2595%25B0&rsv_t=28a94GR7HpLTzNrPlxmkECd%2FH7%2FxLVUT%2Fl7nNZg2lvXyLYGYmSm%2FWmgmJU%2BHYzdTE192&inputT=5673&rsv_pq=c94fc4ed00034890&rsv_sug3=21&rsv_sug1=22&rsv_sug7=101&rsv_sug2=1&prefixsug=ha&rsp=0&rsv_sug4=7286'
   thn = 2
