@@ -1,2 +1,3 @@
 #1 C:\Downloads\store\movies\1.m3u8 天气预爆 http://pcvideoyd.titan.mgtv.com/c1/2019/01/21_0/74A70CD66BA84035D0B20AE5393E3486_20190121_1_1_612_mp4/
-2 C:\Downloads\store\movies\2.m3u8 流浪地球 https://cn2.zuidadianying.com/
+#2 C:\Downloads\store\movies\2.m3u8 流浪地球 https://cn2.zuidadianying.com/
+3 C:\Downloads\store\movies\3.m3u8 1 http://59.80.44.73/videocdn.hndtl.com:8091/20190109/201901090005/1000kb/hls/
