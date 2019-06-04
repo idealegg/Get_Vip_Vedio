@@ -58,32 +58,37 @@ class getSens(threading.Thread):
   def getAFile(self, url, i, sen):
     req2 = None
     fd = None
-    try:
-      print "%s [%d]: %s\n" % (sen, i, url)
-      start_time = time.time()
-      req2 = requests.get(url=url)
-      print req2.encoding
-      print req2.headers
-      print req2.reason
-      f_size = len(req2.content)
-      # print req.content
-      f_path = os.path.join(self.store_dir, "%s_%d.f4v" % (sen, i))
-      fd = open(f_path, "wb")
-      fd.write(req2.content)
-      fd.close()
-      fd = None
-      req2.close()
-      req2 = None
-      end_time = time.time()
-      print "file: %s, start: %s, end: %s, rate: %f kb/s\n" % (
-            f_path, time.ctime(start_time), time.ctime(end_time), f_size/(end_time - start_time)/1000.0)
-    except:
-      print "Exception in getAFile\n"
-      if fd:
+    finish = False
+    tries = 3
+    while not finish and tries > 0:
+      try:
+        tries -= 1
+        print "%s [%d]: %s\n" % (sen, i, url)
+        start_time = time.time()
+        req2 = requests.get(url=url)
+        print req2.encoding
+        print req2.headers
+        print req2.reason
+        f_size = len(req2.content)
+        # print req.content
+        f_path = os.path.join(self.store_dir, "%s_%d.f4v" % (sen, i))
+        fd = open(f_path, "wb")
+        fd.write(req2.content)
         fd.close()
-      if req2:
+        fd = None
         req2.close()
-      raise
+        req2 = None
+        end_time = time.time()
+        print "file: %s, start: %s, end: %s, rate: %f kb/s\n" % (
+              f_path, time.ctime(start_time), time.ctime(end_time), f_size/(end_time - start_time)/1000.0)
+        finish = True
+      except:
+        print "Exception in getAFile, try again, tries: [%n]\n" % (tries - 3)
+        if fd:
+          fd.close()
+        if req2:
+          req2.close()
+        #raise
 
   def getASen(self):
     global lock
@@ -109,6 +114,8 @@ class getSens(threading.Thread):
         return False
       sth_equal = True
       i += 1
+    if len(f) > i and f[i].isdigit():
+      return False
     return sth_equal
 
   def run(self):
@@ -197,17 +204,17 @@ def all_task_finished(ths):
 
 if __name__ == "__main__":
   RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  store_dir = r"C:\Downloads\store\movies"
+  store_dir = r"D:\movies\haizeiwang\store"
   # store_dir = "D:\\movies\\haizeiwang\\lost"
-  target_dir = r"C:\Downloads\merge\movies"
+  target_dir = r"D:\movies\haizeiwang\merge"
   url = 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=2&tn=baiduhome_pg&wd=%E9%A3%8E%E8%B5%B7%E9%95%BF%E6%9E%97&rsv_spt=1&oq=python%2520print&rsv_pq=9fe2cecf0009fcd3&rsv_t=5e590W2QAZ1p0%2FIW8C7sQ4ELeznGgBUqi9aPPYkhkradNgRwRpi39n%2B%2Bkd%2FrMPWls%2BTc&rqlang=cn&rsv_enter=1&rsv_sug3=9&rsv_sug1=6&rsv_sug7=100&bs=python%20print'
   #url = 'https://www.baidu.com/s?wd=%E6%B5%B7%E8%B4%BC%E7%8E%8B&rsv_spt=1&rsv_iqid=0xbffec5ef00005e64&issp=1&f=3&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_enter=1&oq=python%2520get%25E8%25AF%25B7%25E6%25B1%2582%25E5%25B8%25A6%25E5%258F%2582%25E6%2595%25B0&rsv_t=28a94GR7HpLTzNrPlxmkECd%2FH7%2FxLVUT%2Fl7nNZg2lvXyLYGYmSm%2FWmgmJU%2BHYzdTE192&inputT=5673&rsv_pq=c94fc4ed00034890&rsv_sug3=21&rsv_sug1=22&rsv_sug7=101&rsv_sug2=1&prefixsug=ha&rsp=0&rsv_sug4=7286'
-  thn = 2
+  thn = 4
   getExistFile([store_dir, target_dir])
   all_task_info = GetVid.GetVid.GetSens(url)
   print all_task_info
   to_finish_keys = all_task_info.keys()
-  to_finish_keys.sort(cmp=lambda x,y: cmp(int(x[:-1], 10), int(y[:-1], 10)))
+  to_finish_keys.sort(cmp=lambda x,y: cmp(int(x[:3], 10), int(y[:3], 10)))
   th_list = []
   for i in range(thn):
     th = getSens(store_dir, target_dir)

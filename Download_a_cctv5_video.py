@@ -12,6 +12,7 @@ import chardet
 import json
 import urllib
 import traceback
+from Crypto.Cipher import AES
 
 
 done_file_list = []
@@ -55,6 +56,10 @@ class getSens(threading.Thread):
     self.retry = retry
     self.sen = None
     self.info = None
+    self.sen_info_path = "sens_info.txt"
+    self.sen_list = []
+    self.sen_no = 0
+    self.max_no_a_file = 700
 
   def stop(self):
     self._stop_event.set()
@@ -72,11 +77,16 @@ class getSens(threading.Thread):
       print req2.encoding
       print req2.headers
       print req2.reason
-      f_size = len(req2.content)
+      if self.info.has_key('key') and self.info['key']:
+        cryptor = AES.new(self.info['key'], AES.MODE_CBC, self.info['key'])
+        f_content = cryptor.decrypt(req2.content)
+      else:
+        f_content = req2.content
+      f_size = len(f_content)
       # print req.content
       f_path = os.path.join(self.store_dir, "%s_%d.ts" % (self.sen, i))
       fd = open(f_path, "wb")
-      fd.write(req2.content)
+      fd.write(f_content)
       fd.close()
       fd = None
       req2.close()
@@ -93,18 +103,24 @@ class getSens(threading.Thread):
       raise
 
   def getASen(self):
-    global lock
-    global to_finish_keys
-    key = None
-    lock.acquire()
-    if to_finish_keys:
-      self.leisure = False
-      key = to_finish_keys.pop(0)
-    lock.release()
-    if key:
-      return key, all_task_info[key]
-    else:
-      return None, None
+    if not self.sen_list:
+      if os.path.exists(self.sen_info_path):
+        fd = open(self.sen_info_path, "rb")
+        for line in fd:
+          line = line.strip()
+          if line and not line.startswith('#'):
+            print chardet.detect(line)
+            line2 = line.decode('utf-8')
+            fields = line2.split(" ")
+            self.sen_list.append((fields[0], {'m3u8': fields[1].strip(),
+                               'name' : fields[2].strip(),
+                               'url'  : fields[3].strip(),
+                               'key'  : fields[4].strip() if len(fields) > 4 else ''}))
+        fd.close()
+    if self.sen_list and self.sen_no < len(self.sen_list):
+      self.sen_no += 1
+      return self.sen_list[self.sen_no-1]
+    return None, None
 
   def sen_number_equal(self, f):
     i = 0
@@ -132,23 +148,16 @@ class getSens(threading.Thread):
         refs.append(line)
     return refs
 
-  def findout_all_ref(self, content):
-    cont = json.loads(content)
-    cont['url'] = urllib.unquote(cont['url']).replace('hhttps', 'https')
-    url = cont['url']
-    index = 0
-    for i in range(3):
-      index += url.find('/') + 1
-      url = url[url.find('/')+1:]
-    url = cont['url'][:index-1]
-    print url
-    refs = self.getreffromurl(cont['url'])
-    print refs
-    if len(refs) != 1:
-      print "The first m3u8 file is empty!"
-      return []
-    refs = self.getreffromurl("%s%s" % (url, refs[0]))
-    return map(lambda x:"%s%s"%(url, x), refs)
+  def findout_all_ref(self):
+    refs = []
+    if os.path.exists(self.info['m3u8']):
+      fd = open(self.info['m3u8'], "rb")
+      for line in fd:
+        line = line.strip()
+        if line and not line.startswith('#'):
+          refs.append(line)
+      fd.close()
+    return map(lambda x:"%s%s"%(self.info['url'], x), refs)
 
   def getRes(self, res):
     res2 = list(res)
@@ -177,18 +186,22 @@ class getSens(threading.Thread):
     return res2
 
   def getNotDownload(self):
-    fd = open("%s.m3u8" % self.sen, 'r')
-    res = [i for i in fd]
+    fd = open(os.path.join(self.store_dir, "%s.m3u8" % self.sen), 'r')
+    res = []
+    for i in fd:
+      i = i.strip()
+      if not i.startswith('#'):
+        res.append(i)
     flags = [False]*len(res)
     fd.close()
     f_list = os.listdir(self.store_dir)
     for f in f_list:
       if self.sen_number_equal(f):
-        flags[int(f[f.find('_')+1:-3], 10)] = True
+        flags[int(f[f.find('_')+1:f.rfind('.')], 10)] = True
     res2 = []
     for i in range(len(flags)):
       if not flags[i]:
-        res2.append((i, res[i]))
+        res2.append((i, "".join([self.info['url'], res[i]])))
     print "getNotDownload"
     print res2
     return res2
@@ -203,28 +216,10 @@ class getSens(threading.Thread):
           merge_again = False
           f_list = []
           if not done_file_list.count("%s_%d.ts" % (self.sen, 0)):
-            self.textmod['id'] = self.info
-            self.textmod['md5'] = GetSign.GetSign.GetSign(
-                                      GetKey.GetKey.GetKey(
-                                       url='http://www.1717yun.com/1717yun/',
-                                       addr=self.info,
-                                       host='www.1717yun.com',
-                                       ref='http://www.1717yun.com/jx/ty.php?url=&url='))
-            self.header_dict['Referer'] = "http://www.1717yun.com/1717yun/?url=%s" % self.info
-            req = requests.post(url=self.url, data=self.textmod,  headers=self.header_dict)
-            print req.encoding
-            print req.headers
-            print req.reason
-            print req.content
-            res = self.findout_all_ref(req.content)
-            req.close()
-            req = None
+            res = self.findout_all_ref()
             print "len: %d" % len(res)
             print "res:"
             print res
-            fd=open("%s.m3u8"%self.sen, 'w')
-            fd.write("\n".join(res))
-            fd.close()
             res2 = []
             for i in range(len(res)):
               res2.append((i, res[i]))
@@ -246,8 +241,31 @@ class getSens(threading.Thread):
                   f_n += 1
                   f_list.append(os.path.join(self.store_dir,file))
               #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
-            f_list.sort(key=lambda x: int(x[x.rfind('_')+1:-3], 10))
-            MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
+            f_list.sort(key=lambda x: int(x[x.rfind('_')+1:x.rfind('.')], 10))
+            if len(f_list) <= self.max_no_a_file:
+              MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
+              #open(os.path.join(self.target_dir, "%s.mp4" % self.info['name']), "wb").write(
+              #  open(os.path.join(self.target_dir, "%s.mp4" % self.sen), "rb").read())
+              print os.path.join(self.target_dir, "%s.mp4" % self.sen)
+              print os.path.join(self.target_dir, "%s.mp4" % self.info['name'])
+              os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen), os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
+              open(os.path.join(self.target_dir, "%s.mp4" % self.sen), 'wb').close()
+            else:
+              merged_no = 0
+              new_no = 0
+              while merged_no < len(f_list):
+                new_target = os.path.join(self.target_dir, "%s_%d.mp4" % (self.sen, new_no))
+                if merged_no + self.max_no_a_file <= len(f_list):
+                  MergeF4v.MergeF4v.merge(f_list[merged_no:merged_no + self.max_no_a_file],
+                                          new_target,
+                                          False, False)
+                else:
+                  MergeF4v.MergeF4v.merge(f_list[merged_no:],
+                                          new_target,
+                                          False, False)
+                os.rename(new_target, os.path.join(self.target_dir, "%s_%d.mp4" % (self.info['name'], new_no)))
+                merged_no += self.max_no_a_file
+                new_no += 1
           else:
             print "file %s.mp4 exist! So not merge again!" % self.sen
         else:
@@ -261,6 +279,7 @@ class getSens(threading.Thread):
         if req:
           req.close()
         traceback.print_exc()
+        break
     print "getSens.run thread %s end!" % self.getName()
 
 
@@ -273,7 +292,6 @@ def getExistFile(check_dirs):
       done_file_list.extend(os.listdir(dir))
     else:
       done_file_list = os.listdir(dir)
-  done_file_list = map(lambda x: x.decode('ISO-8859-1').replace(u'\xbc\xaf', u'\u96c6'), done_file_list)
   print done_file_list
 
 
@@ -286,33 +304,74 @@ def all_task_finished(ths):
       return False
   return True
 
+
+def GetMaxId():
+  global MaxId
+  if MaxId != 0:
+    MaxId += 1
+    return MaxId
+  for f in done_file_list:
+    f = "%s_." % f
+    i = min(f.find("_"), f.find("."))
+    id = 0
+    try:
+      id = int(f[:i])
+    except:
+      id = 0
+    if id > MaxId:
+      MaxId = id
+  MaxId += 1
+  return MaxId
+
+def Generate_A_New_Sen(store_dir):
+  #url = 'http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=bce8688d121c44a8846e4b5b19166383&tz=-8&from=000news&idl=32&idlr=32&modifyed=false&url=%s&tsp=1558853289&vn=1540&vc=63101A88ED29C1C4C89A90276812BD5B&uid=277E443320A0441F1C7514AAF4600CA6'
+  f_cctv5 = open("cctv5_sens_info.txt")
+  target_list = [i for i in f_cctv5]
+  f_cctv5.close()
+  f_cctv5 = open("sens_info.txt", 'w')
+  for i in target_list:
+    if i.startswith("#") or i.startswith("--"):
+      continue
+    print i
+    target_url = i.strip()
+    req = requests.get(url=target_url)
+    j = json.loads(req.content)
+    req.close()
+    print j
+    print j['hls_url']
+    print j['title']
+    t_host=j['hls_url'][:j['hls_url'].find('/', 7)]
+    m3u8_list = requests.get(url=j['hls_url'])
+    max_resolution = 0
+    print m3u8_list.content
+    for line in m3u8_list.content.split("\n"):
+      if line and not line.startswith("#"):
+        print line
+        resolution = int(line[line.rfind('/')+1:-5])
+        if resolution > max_resolution:
+          m3u8_url = line
+    m3u8_list.close()
+    s_info = {}
+    s_info['id'] = GetMaxId()
+    s_info['m3u8'] = os.path.join(store_dir, "%d.m3u8" % s_info['id'])
+    f_m3u8 = open(s_info['m3u8'], 'w')
+    r_m3u8 = requests.get(url="%s%s"%(t_host, m3u8_url))
+    f_m3u8.write(r_m3u8.content)
+    f_m3u8.close()
+    r_m3u8.close()
+    s_info['title'] = j['title'].replace(' ', '_').replace('/', '_')
+    s_info['url'] = "%s%s"%(t_host, m3u8_url[:m3u8_url.rfind("/")+1])
+    f_cctv5.write(" ".join(["%d"%s_info['id'], s_info['m3u8'], s_info['title'], s_info['url'], "\n"]).encode('utf8'))
+  f_cctv5.close()
+
 if __name__ == "__main__":
   RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  store_dir = r"C:\Downloads\store\movies"
+  store_dir = r"I:\movie\store"
   # store_dir = "D:\\movies\\haizeiwang\\lost"
-  target_dir = r"C:\Downloads\merge\movies"
-  url = 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=2&tn=baiduhome_pg&wd=%E9%A3%8E%E8%B5%B7%E9%95%BF%E6%9E%97&rsv_spt=1&oq=python%2520print&rsv_pq=9fe2cecf0009fcd3&rsv_t=5e590W2QAZ1p0%2FIW8C7sQ4ELeznGgBUqi9aPPYkhkradNgRwRpi39n%2B%2Bkd%2FrMPWls%2BTc&rqlang=cn&rsv_enter=1&rsv_sug3=9&rsv_sug1=6&rsv_sug7=100&bs=python%20print'
-  #url = 'https://www.baidu.com/s?wd=%E6%B5%B7%E8%B4%BC%E7%8E%8B&rsv_spt=1&rsv_iqid=0xbffec5ef00005e64&issp=1&f=3&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_enter=1&oq=python%2520get%25E8%25AF%25B7%25E6%25B1%2582%25E5%25B8%25A6%25E5%258F%2582%25E6%2595%25B0&rsv_t=28a94GR7HpLTzNrPlxmkECd%2FH7%2FxLVUT%2Fl7nNZg2lvXyLYGYmSm%2FWmgmJU%2BHYzdTE192&inputT=5673&rsv_pq=c94fc4ed00034890&rsv_sug3=21&rsv_sug1=22&rsv_sug7=101&rsv_sug2=1&prefixsug=ha&rsp=0&rsv_sug4=7286'
-  thn = 1
+  target_dir = r"I:\movie\merge"
+  MaxId = 0
   getExistFile([store_dir, target_dir])
-  all_task_info = GetVid.GetVid.GetSens(url)
-  print all_task_info
-  to_finish_keys = all_task_info.keys()
-  to_finish_keys.sort(cmp=lambda x,y: cmp(int(x[:-1], 10), int(y[:-1], 10)))
-  th_list = []
-  for i in range(thn):
-    th = getSens(store_dir, target_dir)
-    th_list.append(th)
-    th.start()
-  time.sleep(1)
-  while True:
-    if all_task_finished(th_list):
-      for th in th_list:
-        th.stop()
-      for th in th_list:
-        th.join()
-      print "All task completed!"
-      break
-    else:
-      print "sleeping..."
-      time.sleep(10)
+  Generate_A_New_Sen(store_dir)
+  th = getSens(store_dir, target_dir)
+  th.start()
+  th.join()
