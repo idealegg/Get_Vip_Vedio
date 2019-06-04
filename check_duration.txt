@@ -1,0 +1,1 @@
+for i in `ls -1v *mp4`; do avconv -i $i 2>&1|grep Duration|awk -vi=$i -F':' ' {if($3 < 20){print i}}'; done |tee check_duration.result

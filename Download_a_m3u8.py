@@ -12,6 +12,7 @@ import chardet
 import json
 import urllib
 import traceback
+from Crypto.Cipher import AES
 
 
 done_file_list = []
@@ -76,11 +77,16 @@ class getSens(threading.Thread):
       print req2.encoding
       print req2.headers
       print req2.reason
-      f_size = len(req2.content)
+      if self.info.has_key('key') and self.info['key']:
+        cryptor = AES.new(self.info['key'], AES.MODE_CBC, self.info['key'])
+        f_content = cryptor.decrypt(req2.content)
+      else:
+        f_content = req2.content
+      f_size = len(f_content)
       # print req.content
       f_path = os.path.join(self.store_dir, "%s_%d.ts" % (self.sen, i))
       fd = open(f_path, "wb")
-      fd.write(req2.content)
+      fd.write(f_content)
       fd.close()
       fd = None
       req2.close()
@@ -108,7 +114,8 @@ class getSens(threading.Thread):
             fields = line2.split(" ")
             self.sen_list.append((fields[0], {'m3u8': fields[1].strip(),
                                'name' : fields[2].strip(),
-                               'url'  : fields[3].strip()}))
+                               'url'  : fields[3].strip(),
+                               'key'  : fields[4].strip() if len(fields) > 4 else ''}))
         fd.close()
     if self.sen_list and self.sen_no < len(self.sen_list):
       self.sen_no += 1
@@ -125,6 +132,8 @@ class getSens(threading.Thread):
         return False
       sth_equal = True
       i += 1
+    if len(f) > i and f[i].isdigit():
+      return False
     return sth_equal
 
   def getreffromurl(self, url):
@@ -228,15 +237,18 @@ class getSens(threading.Thread):
             if not f_list:
               f_n = 0
               for file in os.listdir(self.store_dir):
-                if file.endswith('.ts'): #and self.sen_number_equal(file):
+                if file.endswith('.ts') and self.sen_number_equal(file):
                   f_n += 1
                   f_list.append(os.path.join(self.store_dir,file))
               #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
             f_list.sort(key=lambda x: int(x[x.rfind('_')+1:x.rfind('.')], 10))
             if len(f_list) <= self.max_no_a_file:
               MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
-              open(os.path.join(self.target_dir, "%s.mp4" % self.info['name']), "wb").write(
-                open(os.path.join(self.target_dir, "%s.mp4" % self.sen), "rb").read())
+              #open(os.path.join(self.target_dir, "%s.mp4" % self.info['name']), "wb").write(
+              #  open(os.path.join(self.target_dir, "%s.mp4" % self.sen), "rb").read())
+              os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen),
+                        os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
+              open(os.path.join(self.target_dir, "%s.mp4" % self.sen), 'wb').close()
             else:
               merged_no = 0
               new_no = 0
@@ -266,7 +278,7 @@ class getSens(threading.Thread):
         if req:
           req.close()
         traceback.print_exc()
-      break
+        break
     print "getSens.run thread %s end!" % self.getName()
 
 
@@ -293,9 +305,9 @@ def all_task_finished(ths):
 
 if __name__ == "__main__":
   RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  store_dir = r"C:\Downloads\store\movies"
+  store_dir = r"I:\movie\store"
   # store_dir = "D:\\movies\\haizeiwang\\lost"
-  target_dir = r"C:\Downloads\merge\movies"
+  target_dir = r"I:\movie\merge"
   getExistFile([store_dir, target_dir])
   th = getSens(store_dir, target_dir)
   th.start()
