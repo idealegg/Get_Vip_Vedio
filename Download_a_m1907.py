@@ -179,6 +179,7 @@ class getSens(threading.Thread):
           res2.remove(res[int(th.getName(), 10)])
       j += step
       step = self.init_step - len(thread_list)
+      step = self.init_step - len(thread_list)
     if len(thread_list):
       for th in thread_list:
         print "Remaining thread: [%s]" % list(res[int(th.getName(), 10)])
@@ -250,8 +251,7 @@ class getSens(threading.Thread):
             MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
             print os.path.join(self.target_dir, "%s.mp4" % self.sen)
             print os.path.join(self.target_dir, "%s.mp4" % self.info['name'])
-            os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen),
-                      os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
+            os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen), os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
             open(os.path.join(self.target_dir, "%s.mp4" % self.sen), 'wb').close()
           else:
             print "file %s.mp4 exist! So not merge again!" % self.sen
@@ -291,12 +291,67 @@ def all_task_finished(ths):
       return False
   return True
 
+
+def GetMaxId():
+  global MaxId
+  if MaxId != 0:
+    MaxId += 1
+    return MaxId
+  for f in done_file_list:
+    f = "%s_." % f
+    i = min(f.find("_"), f.find("."))
+    id = 0
+    try:
+      id = int(f[:i])
+    except:
+      id = 0
+    if id > MaxId:
+      MaxId = id
+  MaxId += 1
+  return MaxId
+
+def Generate_A_New_Sen(store_dir):
+  #url = 'http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=bce8688d121c44a8846e4b5b19166383&tz=-8&from=000news&idl=32&idlr=32&modifyed=false&url=%s&tsp=1558853289&vn=1540&vc=63101A88ED29C1C4C89A90276812BD5B&uid=277E443320A0441F1C7514AAF4600CA6'
+  f_m1907 = open("m1907_sens_info.txt")
+  j = json.load(f_m1907)
+  f_m1907.close()
+  b = j['data'][0]['source']['eps']
+  outs = []
+  i = 1
+  for e in b:
+    print "e['url']: %s" % e['url']
+    req = requests.get(e['url'])
+    print "req: %s" % req.content
+    for line in req.content.split('\n'):
+      if not line.startswith("#"):
+        if not line.startswith('/'):
+          line = '/' + line
+        url = "%s%s" % (e['url'][:e['url'].rfind('/')],  line)
+        print "url: %s" % url
+        req2 = requests.get(url)
+        print "req2: %s" % req2
+        m3u8 = os.path.join(store_dir, "%d.m3u8" % i)
+        f_m3u8 = open(m3u8, 'wb')
+        f_m3u8.write(req2.content)
+        f_m3u8.close()
+        outs.append("%d %s %s %s" % (i, m3u8, e['name'], url[:url.rfind('/')+1]))
+        req.close()
+        req2.close()
+        break
+    i += 1
+  print "outs: %s " % outs
+  f_cctv5 = open("sens_info.txt", 'w')
+  f_cctv5.write("\n".join(outs).encode('utf8'))
+  f_cctv5.close()
+
 if __name__ == "__main__":
   RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
   store_dir = r"C:\work\tmp\tmp\store"
   # store_dir = "D:\\movies\\haizeiwang\\lost"
   target_dir = r"C:\work\tmp\tmp\merge"
+  MaxId = 0
   getExistFile([store_dir, target_dir])
+  Generate_A_New_Sen(store_dir)
   th = getSens(store_dir, target_dir)
   th.start()
   th.join()

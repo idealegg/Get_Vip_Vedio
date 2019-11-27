@@ -179,10 +179,16 @@ class getSens(threading.Thread):
           res2.remove(res[int(th.getName(), 10)])
       j += step
       step = self.init_step - len(thread_list)
-    for th in thread_list:
-      print "Remaining thread: [%s]" % res[i][1]
-      th.join()
-      res2.remove(res[int(th.getName(), 10)])
+      step = self.init_step - len(thread_list)
+    if len(thread_list):
+      for th in thread_list:
+        print "Remaining thread: [%s]" % list(res[int(th.getName(), 10)])
+        th.join(60.0)
+        if not th.is_alive():
+          thread_list.remove(th)
+          res2.remove(res[int(th.getName(), 10)])
+        else:
+          print "Remaining thread can not be ended: [%s]" % list(res[int(th.getName(), 10)])
     return res2
 
   def getNotDownload(self):
@@ -242,30 +248,12 @@ class getSens(threading.Thread):
                   f_list.append(os.path.join(self.store_dir,file))
               #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
             f_list.sort(key=lambda x: int(x[x.rfind('_')+1:x.rfind('.')], 10))
-            if len(f_list) <= self.max_no_a_file:
-              MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
-              #open(os.path.join(self.target_dir, "%s.mp4" % self.info['name']), "wb").write(
-              #  open(os.path.join(self.target_dir, "%s.mp4" % self.sen), "rb").read())
-              print os.path.join(self.target_dir, "%s.mp4" % self.sen)
-              print os.path.join(self.target_dir, "%s.mp4" % self.info['name'])
-              os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen), os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
-              open(os.path.join(self.target_dir, "%s.mp4" % self.sen), 'wb').close()
-            else:
-              merged_no = 0
-              new_no = 0
-              while merged_no < len(f_list):
-                new_target = os.path.join(self.target_dir, "%s_%d.mp4" % (self.sen, new_no))
-                if merged_no + self.max_no_a_file <= len(f_list):
-                  MergeF4v.MergeF4v.merge(f_list[merged_no:merged_no + self.max_no_a_file],
-                                          new_target,
-                                          False, False)
-                else:
-                  MergeF4v.MergeF4v.merge(f_list[merged_no:],
-                                          new_target,
-                                          False, False)
-                os.rename(new_target, os.path.join(self.target_dir, "%s_%d.mp4" % (self.info['name'], new_no)))
-                merged_no += self.max_no_a_file
-                new_no += 1
+            MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
+            print os.path.join(self.target_dir, "%s.mp4" % self.sen)
+            print os.path.join(self.target_dir, "%s.mp4" % self.info['name'])
+            os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen),
+                      os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
+            open(os.path.join(self.target_dir, "%s.mp4" % self.sen), 'wb').close()
           else:
             print "file %s.mp4 exist! So not merge again!" % self.sen
         else:
