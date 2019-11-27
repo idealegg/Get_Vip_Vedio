@@ -62,6 +62,7 @@ class getSens(threading.Thread):
     self.max_no_a_file = 700
 
   def stop(self):
+    self.leisure = True
     self._stop_event.set()
 
   def stopped(self):
@@ -259,10 +260,10 @@ class getSens(threading.Thread):
         else:
           print '%s is leisure!' % self.getName()
           print to_finish_keys
-          self.leisure = True
+          self.stop()
           time.sleep(1)
       except:
-        self.leisure = True
+        self.stop()
         print "Exception in getSens.run\n"
         if req:
           req.close()
