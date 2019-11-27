@@ -258,10 +258,10 @@ class getSens(threading.Thread):
         else:
           print '%s is leisure!' % self.getName()
           print to_finish_keys
-          self.leisure = True
+          self.stop()
           time.sleep(1)
       except:
-        self.leisure = True
+        self.stop()
         print "Exception in getSens.run\n"
         if req:
           req.close()
