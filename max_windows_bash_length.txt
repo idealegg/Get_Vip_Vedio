@@ -1,0 +1,11 @@
+>>> fd=os.popen(cmd(8156))
+>>> fd=os.popen(cmd(8152))
+>>> fd=os.popen(cmd(8151))
+>>> os.unlink('1')
+>>> fd=os.popen(cmd(8152))
+>>> print len(cmd(8151)
+... )
+8160
+>>> print len(cmd(8152)
+... )
+8161

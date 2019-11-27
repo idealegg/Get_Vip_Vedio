@@ -51,6 +51,12 @@ def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
                  "-ss 00:02:10 -t %d" % (durition - 240) if cut_flag else '',
                  new_target)
   print "cmd: %s" % cmd
+  if len(cmd) > 8000:
+    bat = 'merge.bat'
+    fd = open(bat, 'wb')
+    fd.write(cmd)
+    fd.close()
+    cmd = bat
   fd = os.popen(cmd)
   for line in fd:
     print line

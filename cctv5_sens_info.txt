@@ -52,3 +52,6 @@ http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=99ad888a46a34cd6b671a7972663
 http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=efc5c23fce194592bc5c8d7ab82266cd&tz=-8&from=000news&idl=32&idlr=32&modifyed=false&url=http://sports.cctv.com/2019/05/22/VIDEjKFWkKKOblpErsSNySCp190522.shtml&tsp=1559483169&vn=1540&vc=E61A25B68325A4A60813E600EA361D10&uid=277E443320A0441F1C7514AAF4600CA6
 http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=01c756ef87d04c16a48a2fa9f13cea68&tz=-8&from=000news&idl=32&idlr=32&modifyed=false&url=http://sports.cctv.com/2019/05/22/VIDEYXRzUwJfmG7BkZboK8h0190522.shtml&tsp=1559483190&vn=1540&vc=FD7B43773354CA80EFCC189971DB819B&uid=277E443320A0441F1C7514AAF4600CA6
 http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=24c79e10722f430693a32c77e44579fb&tz=-8&from=000news&idl=32&idlr=32&modifyed=false&url=http://sports.cctv.com/2019/05/22/VIDEr6pmnVmcjhKbydkgHbRU190522.shtml&tsp=1559483222&vn=1540&vc=135A705FBC64D8FE9139FD9D62BD1F27&uid=277E443320A0441F1C7514AAF4600CA6
+#
+
+#https://z1.m1907.cn/api/v/?z=e8e56ecaca35c6229baa93884b6b7323&jx=https://v.qq.com/x/cover/1eyf4xyyez4p76n/o0363ttfmt7.html?ptag=10523&t2f=11399&sig=11399
