@@ -201,8 +201,12 @@ class getSens(threading.Thread):
     fd.close()
     f_list = os.listdir(self.store_dir)
     for f in f_list:
-      if self.sen_number_equal(f):
-        flags[int(f[f.find('_')+1:f.rfind('.')], 10)] = True
+      if self.sen_number_equal(f) and f.find('_') != -1 and f.find('.') != -1:
+        t_str = f[f.find('_')+1:f.rfind('.')]
+        if t_str.isdigit():
+          t_int = int(t_str, 10)
+          if t_int < len(flags):
+            flags[t_int] = True
     res2 = []
     for i in range(len(flags)):
       if not flags[i]:
