@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import os
 import re
+import shutil
 
 
 '''
@@ -43,7 +44,7 @@ def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
   if not os.path.isdir(target):
     new_target = target
   else:
-    new_target = os.path.join(target, ts_list_new[0].replace('_0', '').replace('ts', 'mp4'))
+    new_target = ts_list_new[0].replace('_0', '').replace('ts', 'mp4')
   print "concatf4v: ts_list: [%s]" % '|'.join(ts_list_new)
   print "durition: %d, target: %s, convert_flag: %s, cut_flag: %s" % (durition, new_target, convert_flag, cut_flag)
   cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
@@ -52,15 +53,22 @@ def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
                  new_target)
   print "cmd: %s" % cmd
   if len(cmd) > 8000:
-    bat = 'merge.bat'
+    bat = 'merge.sh'
     fd = open(bat, 'wb')
     fd.write(cmd)
     fd.close()
-    cmd = bat
+    cmd = 'bash %s' % bat
   fd = os.popen(cmd)
   for line in fd:
     print line
   fd.close()
+  if os.path.isdir(target):
+    if os.path.isfile(os.path.join(target, new_target)):
+      print "[%s] or [%s] already exists!\n" % (new_target, target)
+    elif not os.path.isfile(new_target):
+      print "[%s] is merged fialed!\n" % (new_target)
+    else:
+      shutil.move(new_target, target)
   os.chdir(origin)
   if convert_flag:
     for ts in ts_list:
