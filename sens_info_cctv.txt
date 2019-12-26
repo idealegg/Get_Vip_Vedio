@@ -1,0 +1,2 @@
+1 C:\store\store\1.m3u8 [羽毛球]世界羽毛球巡回赛总决赛女单半决赛：陈雨菲VS山口茜 http://hls.cntv.myalicdn.com/asp/hls/2000/0303000a/3/default/c0c3762af0964501a5a90d5be55add8d/ 
+2 C:\store\store\2.m3u8 [羽毛球]总决赛女双决赛：日本VS中国 http://hls.cntv.baishancdnx.cn/asp/hls/2000/0303000a/3/default/d99e20732d024ea5ba1146f4ae08685a/ 
