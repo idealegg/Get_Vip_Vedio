@@ -33,7 +33,41 @@ def convert2ts(f4v):
   return ret
 
 
-def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
+def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
+  print "exec_concat_cmd: ts_list: [%s]" % '|'.join(ts_list)
+  print "durition: %d, target: %s, cut_flag: %s" % (duration, new_target, cut_flag)
+  i = 0
+  j = 0
+  max_ts_a_time_in_cmd = 700
+  new_ts_name = '_'.join(['merge', ts_list[0].replace('_0', '_%d')])
+  ts_list2 = []
+  while len(ts_list) - i > 0:
+    ts_num = min(len(ts_list) - i, max_ts_a_time_in_cmd)
+    cmd = 'avconv -i "concat:%s" -c copy -y %s 2>&1' % (
+      '|'.join(ts_list[i:i+ts_num]),
+      new_ts_name % j)
+    print "cmd: %s" % cmd
+    fd = os.popen(cmd)
+    for line in fd:
+      print line
+    fd.close()
+    ts_list2.append(new_ts_name % j)
+    i += ts_num
+    j += 1
+  cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
+                   '|'.join(ts_list2),
+                   "-ss 00:02:10 -t %d" % (duration - 240) if cut_flag else '',
+                   new_target)
+  print "cmd: %s" % cmd
+  fd = os.popen(cmd)
+  for line in fd:
+    print line
+  fd.close()
+  for ts in ts_list2:
+    os.remove(ts)
+
+
+def concatf4v(ts_list, duration, target, convert_flag=True, cut_flag=True):
   origin = os.getcwd()
   new_dir = os.path.dirname(ts_list[0])
   if not new_dir:
@@ -45,23 +79,7 @@ def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
     new_target = target
   else:
     new_target = ts_list_new[0].replace('_0', '').replace('ts', 'mp4')
-  print "concatf4v: ts_list: [%s]" % '|'.join(ts_list_new)
-  print "durition: %d, target: %s, convert_flag: %s, cut_flag: %s" % (durition, new_target, convert_flag, cut_flag)
-  cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
-                 '|'.join(ts_list_new),
-                 "-ss 00:02:10 -t %d" % (durition - 240) if cut_flag else '',
-                 new_target)
-  print "cmd: %s" % cmd
-  if len(cmd) > 8000:
-    bat = 'merge.sh'
-    fd = open(bat, 'wb')
-    fd.write(cmd)
-    fd.close()
-    cmd = 'bash %s' % bat
-  fd = os.popen(cmd)
-  for line in fd:
-    print line
-  fd.close()
+  exec_concat_cmd(ts_list_new, duration, cut_flag, new_target)
   if os.path.isdir(target):
     if os.path.isfile(os.path.join(target, new_target)):
       print "[%s] or [%s] already exists!\n" % (new_target, target)
@@ -77,17 +95,17 @@ def concatf4v(ts_list, durition, target, convert_flag=True, cut_flag=True):
 
 def merge(src_list, target, convert_flag=True, cut_flag=True):
   ts_list = []
-  durition = 0
+  duration = 0
   print src_list
   if convert_flag:
     for f4v in src_list:
       print f4v
       ts, dur = convert2ts(f4v)
       ts_list.append(ts)
-      durition = dur
+      duration = dur
   else:
     ts_list = src_list
-  concatf4v(ts_list, durition, target, convert_flag, cut_flag)
+  concatf4v(ts_list, duration, target, convert_flag, cut_flag)
 
 
 if __name__ == "__main__":

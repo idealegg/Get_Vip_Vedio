@@ -70,17 +70,18 @@ class GetSensBase(threading.Thread):
     else:
       self.headers = self.conf['headers']
 
-  def get_exist_file(self):
-    if self.done_file_list:
+  @classmethod
+  def get_exist_file(cls):
+    if cls.done_file_list:
       return
-    for dir in [self.store_dir, self.target_dir]:
+    for dir in [cls.store_dir, cls.target_dir]:
       print dir
       print os.listdir(dir)
-      if self.done_file_list:
-        self.done_file_list.extend(os.listdir(dir))
+      if cls.done_file_list:
+        cls.done_file_list.extend(os.listdir(dir))
       else:
-        self.done_file_list = os.listdir(dir)
-    print self.done_file_list
+        cls.done_file_list = os.listdir(dir)
+    print cls.done_file_list
 
   def init_session(self):
     self.sessions = []
@@ -201,6 +202,7 @@ class GetSensBase(threading.Thread):
   def get_base_sen_id(cls):
     if cls.base_sen_id != 0:
       cls.base_sen_id += 1
+      print "base_sen_id: %d" % cls.base_sen_id
       return cls.base_sen_id
     for f in cls.done_file_list:
       f = "%s_." % f
@@ -213,6 +215,7 @@ class GetSensBase(threading.Thread):
       if id > cls.base_sen_id:
         cls.base_sen_id = id
     cls.base_sen_id += 1
+    print "base_sen_id: %d" % cls.base_sen_id
     return cls.base_sen_id
 
   @classmethod
@@ -415,7 +418,7 @@ class GetSensBase(threading.Thread):
 
 
 if __name__ == "__main__":
-  RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
+  #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
   os.chdir("..")
   th = GetSensBase(conf={'base_dir': r'C:\store',
                          'check_downloaded_retry': 1,
