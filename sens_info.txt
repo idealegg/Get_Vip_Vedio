@@ -1,24 +1,11 @@
-1 C:\work\tmp\tmp\store\1.m3u8 第01集 https://tudou.com-l-tudou.com/20180422/9364_5ee3bfd2/1000k/hls/
-2 C:\work\tmp\tmp\store\2.m3u8 第02集 https://tudou.com-l-tudou.com/20180422/9370_5fd79006/1000k/hls/
-3 C:\work\tmp\tmp\store\3.m3u8 第03集 https://tudou.com-l-tudou.com/20180422/9365_4a505cd8/1000k/hls/
-4 C:\work\tmp\tmp\store\4.m3u8 第04集 https://tudou.com-l-tudou.com/20180422/9366_ad1ff19b/1000k/hls/
-5 C:\work\tmp\tmp\store\5.m3u8 第05集 https://tudou.com-l-tudou.com/20180422/9367_980d0252/1000k/hls/
-6 C:\work\tmp\tmp\store\6.m3u8 第06集 https://tudou.com-l-tudou.com/20180422/9369_214879e7/1000k/hls/
-7 C:\work\tmp\tmp\store\7.m3u8 第07集 https://tudou.com-l-tudou.com/20180422/9379_a7656b17/1000k/hls/
-8 C:\work\tmp\tmp\store\8.m3u8 第08集 https://tudou.com-l-tudou.com/20180422/9371_a9f40682/1000k/hls/
-9 C:\work\tmp\tmp\store\9.m3u8 第09集 https://tudou.com-l-tudou.com/20180422/9381_b524c241/1000k/hls/
-10 C:\work\tmp\tmp\store\10.m3u8 第10集 https://tudou.com-l-tudou.com/20180422/9372_cea08b39/1000k/hls/
-11 C:\work\tmp\tmp\store\11.m3u8 第11集 https://tudou.com-l-tudou.com/20180422/9373_e57e98b2/1000k/hls/
-12 C:\work\tmp\tmp\store\12.m3u8 第12集 https://tudou.com-l-tudou.com/20180422/9374_b2de9c92/1000k/hls/
-13 C:\work\tmp\tmp\store\13.m3u8 第13集 https://tudou.com-l-tudou.com/20180422/9375_256586ac/1000k/hls/
-14 C:\work\tmp\tmp\store\14.m3u8 第14集 https://tudou.com-l-tudou.com/20180422/9376_b9706c93/1000k/hls/
-15 C:\work\tmp\tmp\store\15.m3u8 第15集 https://tudou.com-l-tudou.com/20180422/9377_75ca8db5/1000k/hls/
-16 C:\work\tmp\tmp\store\16.m3u8 第16集 https://tudou.com-l-tudou.com/20180422/9378_a35ff095/1000k/hls/
-17 C:\work\tmp\tmp\store\17.m3u8 第17集 https://tudou.com-l-tudou.com/20180422/9380_370627b6/1000k/hls/
-18 C:\work\tmp\tmp\store\18.m3u8 第18集 https://tudou.com-l-tudou.com/20180422/9390_bba137f3/1000k/hls/
-19 C:\work\tmp\tmp\store\19.m3u8 第19集 https://tudou.com-l-tudou.com/20180422/9382_0784c6d6/1000k/hls/
-20 C:\work\tmp\tmp\store\20.m3u8 第20集 https://tudou.com-l-tudou.com/20180422/9392_25dcec76/1000k/hls/
-21 C:\work\tmp\tmp\store\21.m3u8 第21集 https://tudou.com-l-tudou.com/20180422/9383_1c737646/1000k/hls/
-22 C:\work\tmp\tmp\store\22.m3u8 第22集 https://tudou.com-l-tudou.com/20180422/9384_58c84e74/1000k/hls/
-23 C:\work\tmp\tmp\store\23.m3u8 第23集 https://tudou.com-l-tudou.com/20180422/9385_26f1602f/1000k/hls/
-99 C:\work\tmp\tmp\store\99.m3u8 第1_19集 https://youku.com-iqiyi.net/20170914/KBlN3uup/hls/
+1 904
+2 905
+3 906
+4 907
+5 908
+6 909
+7 910
+8 911
+9 912
+10 913
+11 914

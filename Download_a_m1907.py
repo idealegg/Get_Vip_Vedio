@@ -44,32 +44,44 @@ def generate_a_new_sen(gsb, force=False):
     f_m1907 = open(gsb.conf['m1907_info_path'])
     j = json.load(f_m1907)
     f_m1907.close()
-    b = j['data'][0]['source']['eps']
     outs = []
-    i = gsb.get_base_sen_id()
-    for e in b:
-      print "e['url']: %s" % e['url']
-      req = requests.get(e['url'])
-      print "req: %s" % req.content
-      for line in req.content.split('\n'):
-        if not line.startswith("#"):
-          url = GetSensBase.concat_url(e['url'], line)
-          print "url: %s" % url
-          req2 = requests.get(url)
-          print "req2: %s" % req2
-          m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
-          f_m3u8 = open(m3u8, 'wb')
-          f_m3u8.write(req2.content)
-          f_m3u8.close()
-          outs.append("%d %s %s %s" % (i, m3u8, e['name'], url[:url.rfind('/')+1]))
-          req.close()
-          req2.close()
-          break
-      i += 1
+    for season in j['data']:
+      for e in season['source']['eps']:
+        print "e['url']: %s" % e['url']
+        req = requests.get(e['url'])
+        print "req: %s" % req.content
+        for line in req.content.split('\n'):
+          if not line.startswith("#"):
+            url = GetSensBase.concat_url(e['url'], line)
+            print "url: %s" % url
+            req2 = requests.get(url)
+            print "req2: %s" % req2
+            i = gsb.get_base_sen_id()
+            m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
+            f_m3u8 = open(m3u8, 'wb')
+            f_m3u8.write(req2.content)
+            f_m3u8.close()
+            outs.append("%d %s %s %s" % (i, m3u8, season['name']+e['name'], url[:url.rfind('/')+1]))
+            req.close()
+            req2.close()
+            break
     print "outs: %s " % outs
     f_cctv5 = open(gsb.conf['sen_info_path'], 'w')
     f_cctv5.write("\n".join(outs).encode('utf8'))
     f_cctv5.close()
+
+
+def a():
+  fd=open('1.json')
+  j=json.load(fd)
+  fd.close()
+  k=0
+  for i in range(len(j['video'])):
+    if 'm3u8' in j['video'][i]:
+      k=i
+  fd=open("0.m3u8" , 'wb')
+  fd.write(j['video'][k]['m3u8'])
+  fd.close()
 
 
 if __name__ == "__main__":
@@ -82,7 +94,9 @@ if __name__ == "__main__":
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
                          'sen_info_path': 'sens_info_m1907.txt',
                          'm1907_info_path': 'm1907_sens_info.txt',
-                         'src_url': 'https://www.iqiyi.com/v_19rqs2dqf0.html?vfm=2008_aldbd',
+                         'src_url': 'https://www.iqiyi.com/v_19rwhml64w.html?src=frbdaldjunest&vfm=bdvtx&frp=v.baidu.com%2Fshow_intro%2F&bl=jp_video&kwid=23610',
+                        # 'src_url': 'https://www.iqiyi.com/v_19rqybn92k.html',
+
                          'servers': 'https://z1.m1907.cn',
                          }
   th = GetSensBase(conf)
