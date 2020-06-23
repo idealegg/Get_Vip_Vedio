@@ -43,6 +43,8 @@ class HGetSens(GetSensBase.GetSensBase.GetSensBase):
     req.close()
     refs = filter(lambda x: not x.startswith('#'), refs)
     refs = refs[1:]
+    if len(refs) > 999:
+      refs = map(lambda x: "".join([x[1:x.rfind('/')], '/1', x[x.rfind('/')+1:]]) if x.startswith('1http') else x , refs)
     f_name = os.path.join(self.store_dir, "%s.m3u8" % self.sen)
     f1 = open(f_name, "wb")
     f1.write('\n'.join(refs))
@@ -52,7 +54,7 @@ class HGetSens(GetSensBase.GetSensBase.GetSensBase):
 
 if __name__ == "__main__":
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  conf = {'base_dir': r'C:\store',
+  conf = {'base_dir': r'F:\store',
                          'check_downloaded_retry': 5,
                          'session_number': 4,
                          'threading_num': 6,
