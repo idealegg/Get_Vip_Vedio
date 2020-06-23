@@ -66,8 +66,8 @@ def generate_a_new_sen(gsb, force=False):
             req2.close()
             break
     print "outs: %s " % outs
-    f_cctv5 = open(gsb.conf['sen_info_path'], 'w')
-    f_cctv5.write("\n".join(outs).encode('utf8'))
+    f_cctv5 = open(gsb.conf['sen_info_path'], 'a')
+    f_cctv5.write("\n" + "\n".join(outs).encode('utf8'))
     f_cctv5.close()
 
 
@@ -86,7 +86,7 @@ def a():
 
 if __name__ == "__main__":
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  conf={'base_dir': r'C:\store',
+  conf={'base_dir': r'E:\temp',
                          'check_downloaded_retry': 5,
                          'session_number': 4,
                          'threading_num': 6,
@@ -94,7 +94,7 @@ if __name__ == "__main__":
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
                          'sen_info_path': 'sens_info_m1907.txt',
                          'm1907_info_path': 'm1907_sens_info.txt',
-                         'src_url': 'https://www.iqiyi.com/v_19rwhml64w.html?src=frbdaldjunest&vfm=bdvtx&frp=v.baidu.com%2Fshow_intro%2F&bl=jp_video&kwid=23610',
+                         'src_url': 'https://www.iqiyi.com/v_19rre1an8k.html?vfm=2008_aldbd',
                         # 'src_url': 'https://www.iqiyi.com/v_19rqybn92k.html',
 
                          'servers': 'https://z1.m1907.cn',

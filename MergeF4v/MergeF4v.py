@@ -2,6 +2,7 @@
 import os
 import re
 import shutil
+import threading
 
 
 '''
@@ -12,6 +13,7 @@ ffmpeg -i "concat:input1.ts|input2.ts|input3.ts" -c copy -bsf:a aac_adtstoasc -m
 '''
 
 st_pattern = re.compile('lasttimestamp\s*:\s*(\d+)')
+move_lock =threading.Lock()
 
 
 def convert2ts(f4v):
@@ -86,7 +88,9 @@ def concatf4v(ts_list, duration, target, convert_flag=True, cut_flag=True):
     elif not os.path.isfile(new_target):
       print "[%s] is merged fialed!\n" % (new_target)
     else:
+      move_lock.acquire()
       shutil.move(new_target, target)
+      move_lock.release()
   os.chdir(origin)
   if convert_flag:
     for ts in ts_list:
