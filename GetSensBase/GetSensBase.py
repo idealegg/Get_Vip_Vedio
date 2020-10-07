@@ -8,6 +8,7 @@ import threading
 import chardet
 import traceback
 from Crypto.Cipher import AES
+import shutil
 
 
 default_conf = {
@@ -40,6 +41,7 @@ class GetSensBase(threading.Thread):
   sen_lock = threading.Lock()
   merge_lock = threading.Lock()
   base_sen_id = 0
+  rename_lock = threading.Lock()
 
   def __init__(self, conf=default_conf):
     super(GetSensBase, self).__init__()
@@ -150,7 +152,7 @@ class GetSensBase(threading.Thread):
     return self._stop_event.is_set()
 
   def get_task(self):
-    ret = ('', 0)
+    ret = (0, '')
     self.task_lock.acquire()
     if self.task_list:
       ret = self.task_list.pop(0)
@@ -377,6 +379,7 @@ class GetSensBase(threading.Thread):
         self.sen, self.info = GetSensBase.get_a_sen()
         if self.sen:
           merge_again = False
+          copy_again = False
           f_list = []
           self.headers = {}
           self.headers.update(self.conf['headers'])
@@ -386,7 +389,7 @@ class GetSensBase(threading.Thread):
             self.get_not_download()
             retry = self.conf['check_downloaded_retry']
             if not self.task_list:
-              print "file %s_0.ts exist! So not download again!" % self.sen
+              print "All ts file downloaded! So not download again!" % self.sen
             else:
               while self.task_list and retry > 0:
                 print "len: %d" % len(self.task_list)
@@ -399,31 +402,38 @@ class GetSensBase(threading.Thread):
               merge_again = True
           else:
             print "file %s.mp4 exist! So not download again!" % self.sen
+          if not f_list:
+            f_n = 0
+            for file in os.listdir(self.store_dir):
+              if file.endswith('.ts') and self.sen_number_equal(file):
+                f_n += 1
+                f_list.append(os.path.join(self.store_dir, file))
+            #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
+          f_list.sort(key=lambda x: int(x[x.rfind('_')+1:x.rfind('.')], 10))
           if merge_again or not self.done_file_list.count("%s.mp4" % self.sen):
-            if not f_list:
-              f_n = 0
-              for file in os.listdir(self.store_dir):
-                if file.endswith('.ts') and self.sen_number_equal(file):
-                  f_n += 1
-                  f_list.append(os.path.join(self.store_dir, file))
-              #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
-            f_list.sort(key=lambda x: int(x[x.rfind('_')+1:x.rfind('.')], 10))
             GetSensBase.merge_lock.acquire()
             MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
             GetSensBase.merge_lock.release()
-            src_file = os.path.join(self.target_dir, "%s.mp4" % self.sen)
-            print "src: [%s]\n" % src_file
-            print "dst: [%s]\n" % dst_file
-            if os.path.isfile(src_file):
-              os.rename(src_file, dst_file)
-              open(src_file, 'wb').close()
-              if self.conf['remove_ts']:
-                for t_f in f_list:
-                  os.unlink(t_f)
-            else:
-              print "%s merged failed!\n" % src_file
           else:
             print "file %s.mp4 exist! So not merge again!" % self.sen
+          f_list.extend(map(lambda x: os.path.join([self.store_dir, x]),
+                            filter(lambda x: x.startswith('merge_%d_') and x.endswith('.ts'), os.listdir(self.store_dir))))
+          src_file = os.path.join(self.target_dir, "%s.mp4" % self.sen)
+          if ("%s.mp4" % self.sen) not in os.listdir(self.target_dir) and ("%s.mp4" % self.sen) in os.listdir(self.store_dir):
+            shutil.move(os.path.join(self.store_dir, "%s.mp4" % self.sen), src_file)
+          if os.path.isfile(src_file) and os.path.getsize(src_file):
+            print "src: [%s]\n" % src_file
+            print "dst: [%s]\n" % dst_file
+            GetSensBase.rename_lock.acquire()
+            os.rename(os.path.join(self.target_dir, "%s.mp4" % self.sen),
+                      os.path.join(self.target_dir, "%s.mp4" % self.info['name']))
+            GetSensBase.rename_lock.release()
+            open(os.path.join(self.target_dir, "%s.mp4" % self.sen), 'wb').close()
+            if self.conf['remove_ts']:
+              for t_f in f_list:
+                os.unlink(t_f)
+          else:
+            print "%s already renamed!\n" % src_file
           self.close_session()
         else:
           print '%s is leisure!' % self.getName()

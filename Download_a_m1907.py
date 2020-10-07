@@ -109,7 +109,7 @@ def generate_a_new_sen(gsb, force=False):
       print "outs: %s " % outs
       #f_cctv5 = open(gsb.conf['sen_info_path'], 'w')
       f_cctv5 = open(gsb.conf['sen_info_path'], 'a')
-      f_cctv5.write("\n".join(outs).encode('utf8')+"\n")
+      f_cctv5.write("\n"+"\n".join(outs).encode('utf8')+"\n")
       f_cctv5.close()
     else:
       print "no data in content!"
@@ -152,7 +152,7 @@ if __name__ == "__main__":
                          ],
                          'servers': 'https://z1.m1907.cn',
                          }
-  th = GetSensBase(conf)#
+  th = GetSensBase(conf)
   th.check_dir()
   th.get_exist_file()
   my_flag1 = 0
