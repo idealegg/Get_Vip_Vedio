@@ -43,21 +43,22 @@ def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
   max_ts_a_time_in_cmd = 700
   new_ts_name = '_'.join(['merge', ts_list[0].replace('_0', '_%d')])
   ts_list2 = []
-  while len(ts_list) - i > 0:
-    ts_num = min(len(ts_list) - i, max_ts_a_time_in_cmd)
-    cmd = 'avconv -i "concat:%s" -c copy -y %s 2>&1' % (
-      '|'.join(ts_list[i:i+ts_num]),
-      new_ts_name % j)
-    print "cmd: %s" % cmd
-    fd = os.popen(cmd)
-    for line in fd:
-      print line
-    fd.close()
-    ts_list2.append(new_ts_name % j)
-    i += ts_num
-    j += 1
+  if len(ts_list) > max_ts_a_time_in_cmd:
+    while len(ts_list) - i > 0:
+      ts_num = min(len(ts_list) - i, max_ts_a_time_in_cmd)
+      cmd = 'avconv -i "concat:%s" -c copy -y %s 2>&1' % (
+        '|'.join(ts_list[i:i+ts_num]),
+        new_ts_name % j)
+      print "cmd: %s" % cmd
+      fd = os.popen(cmd)
+      for line in fd:
+        print line
+      fd.close()
+      ts_list2.append(new_ts_name % j)
+      i += ts_num
+      j += 1
   cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
-                   '|'.join(ts_list2),
+                   '|'.join(ts_list2 if len(ts_list) > max_ts_a_time_in_cmd else ts_list),
                    "-ss 00:02:10 -t %d" % (duration - 240) if cut_flag else '',
                    new_target)
   print "cmd: %s" % cmd

@@ -4,6 +4,7 @@ import RedirectOut.RedirectOut
 import time
 import json
 from GetSensBase.GetSensBase import GetSensBase
+import re
 
 
 path_coding = 'ISO-8859-1'
@@ -27,6 +28,7 @@ def generate_m1907_file(gsb, force=False):
   sign_url = f_popen.read()
   print "Return value: %s" % sign_url
   f_popen.close()
+  sign_url = re.sub('/cover/[^/]+/', '/page/', sign_url)
   url = "%s%s" % (gsb.conf['servers'], sign_url.strip())
   print "Url: %s" % url
   req = requests.get(url)
@@ -86,7 +88,7 @@ def a():
 
 if __name__ == "__main__":
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  conf={'base_dir': r'E:\temp',
+  conf={'base_dir': r'E:\hzw',
                          'check_downloaded_retry': 5,
                          'session_number': 4,
                          'threading_num': 6,
@@ -94,15 +96,26 @@ if __name__ == "__main__":
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
                          'sen_info_path': 'sens_info_m1907.txt',
                          'm1907_info_path': 'm1907_sens_info.txt',
-                         'src_url': 'https://www.iqiyi.com/v_19rre1an8k.html?vfm=2008_aldbd',
-                        # 'src_url': 'https://www.iqiyi.com/v_19rqybn92k.html',
-
+                        # 'src_url': 'https://www.iqiyi.com/v_19rqscg1e8.html',
+                       # 'src_url': 'https://v.qq.com/x/cover/sfn1vjnjkmzedna/t0015ohexi7.html?ptag=10523',
+                       # 'src_url': 'https://v.qq.com/x/cover/g3asobp9jfq0tr0.html',
+                        #'src_url': 'https://v.qq.com/x/cover/zf2z0xpqcculhcz.html',
+        #'src_url': 'https://www.iqiyi.com/v_19rshdv4qc.html',
+        #'src_url': 'https://v.qq.com/x/cover/sxdpww9hfymrtua.html',
+        #'src_url': 'https://v.qq.com/x/cover/6rk0jemko5uecjh.html',
+        #'src_url': 'https://v.qq.com/x/cover/maljebn62xg27dc.html',
+        #'src_url': 'https://v.qq.com/x/cover/54ntb912jygjxd7.html',
+        #'src_url': 'https://v.qq.com/x/cover/vqm1l9en588rdtx.html',
+        #'src_url': 'https://v.qq.com/x/cover/nilk5fd4bkqdk3a.html',
+                         'src_url': 'https://www.iqiyi.com/v_19rqybn92k.html',
                          'servers': 'https://z1.m1907.cn',
+        'remove_ts': False,
                          }
   th = GetSensBase(conf)
   th.check_dir()
   th.get_exist_file()
-  generate_a_new_sen(th, generate_m1907_file(th, False))
+  #generate_a_new_sen(th, generate_m1907_file(th, True))
+  #generate_a_new_sen(th, False)
   th_list = [th]
   th.start()
   th = GetSensBase(conf)

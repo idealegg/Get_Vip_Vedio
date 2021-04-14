@@ -88,7 +88,7 @@ p = w(String(p));
 p = p.substring(0, 10);
 p = w(p);
 h = d.getDay() + 11397;
-m = "/api/v/?z=" + p + "&jx=" + phantom.args[0] + "&t2f=" + h, m = m + "&sig=" + h;
+m = "/api/v/?z=" + p + "&jx=" + phantom.args[0] + "&s1ig=" + h + "&g=";
 console.log(m);
 phantom.exit(0);
 
