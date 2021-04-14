@@ -20,6 +20,9 @@ default_conf = {
   'sen_field_name': ['sen', 'name', 'url', 'key'],
   'headers': {},
   'sen_info_path': 'sens_info.txt',
+  'request_timeout': 10.0,
+  'request_retry': 10,
+  'skip_request_error': False,
   'download_timeout': 60.0,
   'append_url_before': True,
   'remove_ts': True,
@@ -36,6 +39,7 @@ class GetSensBase(threading.Thread):
   sen_no = 0
   done_file_list = []
   sen_lock = threading.Lock()
+  merge_lock = threading.Lock()
   base_sen_id = 0
   rename_lock = threading.Lock()
 
@@ -57,6 +61,26 @@ class GetSensBase(threading.Thread):
     self.cur_task_num = 0
     self.headers = {}
     self.headers.update(self.conf['headers'])
+    self.req_session = requests.Session()
+
+  def get_req(self, url, **kwargs):
+    retry = self.conf['request_retry']
+    req = None
+    if 'timeout' not in kwargs:
+      kwargs['timeout'] = self.conf['request_timeout']
+    while retry > 0:
+      try:
+        req = self.req_session.get(url, **kwargs)
+      except Exception, e:
+        print "Exception in req [%s]: %s" % (url, e)
+      finally:
+        retry -= 1
+      if req:
+        #print dir(req)
+        if req.status_code == 200:
+          break
+    return req
+
 
   def check_dir(self):
     if not os.path.isdir(self.conf['base_dir']):
@@ -387,7 +411,9 @@ class GetSensBase(threading.Thread):
             #f_list = map(lambda x: os.path.join(self.store_dir, "%s_%d.f4v" % (sen, x)), range(f_n))
           f_list.sort(key=lambda x: int(x[x.rfind('_')+1:x.rfind('.')], 10))
           if merge_again or not self.done_file_list.count("%s.mp4" % self.sen):
+            GetSensBase.merge_lock.acquire()
             MergeF4v.MergeF4v.merge(f_list, self.target_dir, False, False)
+            GetSensBase.merge_lock.release()
           else:
             print "file %s.mp4 exist! So not merge again!" % self.sen
           f_list.extend(map(lambda x: os.path.join([self.store_dir, x]),
