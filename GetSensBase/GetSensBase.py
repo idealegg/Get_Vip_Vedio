@@ -365,7 +365,7 @@ class GetSensBase(threading.Thread):
             self.get_not_download()
             retry = self.conf['check_downloaded_retry']
             if not self.task_list:
-              print "All ts file downloaded! So not download again!" % self.sen
+              print "All ts file of [%s] downloaded! So not download again!" % self.sen
             else:
               while self.task_list and retry > 0:
                 print "len: %d" % len(self.task_list)
