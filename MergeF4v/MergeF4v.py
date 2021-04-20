@@ -40,7 +40,7 @@ def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
   print "durition: %d, target: %s, cut_flag: %s" % (duration, new_target, cut_flag)
   i = 0
   j = 0
-  max_ts_a_time_in_cmd = 700
+  max_ts_a_time_in_cmd = 720
   new_ts_name = '_'.join(['merge', ts_list[0].replace('_0', '_%d')])
   ts_list2 = []
   if len(ts_list) > max_ts_a_time_in_cmd:
@@ -57,7 +57,8 @@ def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
       ts_list2.append(new_ts_name % j)
       i += ts_num
       j += 1
-  cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
+  #cmd = 'avconv -i "concat:%s" -c copy -bsf:a aac_adtstoasc -movflags +faststart %s -y %s 2>&1' % (
+  cmd = 'avconv -i "concat:%s" -c copy -movflags +faststart %s -y %s 2>&1' % (
                    '|'.join(ts_list2 if len(ts_list) > max_ts_a_time_in_cmd else ts_list),
                    "-ss 00:02:10 -t %d" % (duration - 240) if cut_flag else '',
                    new_target)

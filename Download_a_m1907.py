@@ -137,7 +137,7 @@ if __name__ == "__main__":
                          'session_number': 4,
                          'threading_num': 6,
                          'wait_session_sleep_time': 0.1,
-                         'sen_field_name': ['sen', 'm3u8', 'name', 'url', 'key'],
+                         'sen_field_name': ['sen', 'name', 'url', 'key'],
                          'sen_info_path': 'sens_info_m1907.txt',
                          'm1907_info_path': 'm1907_sens_info.txt',
                          'src_url': [
@@ -161,11 +161,12 @@ if __name__ == "__main__":
   #my_flag2 = 1
   my_flag2 = my_flag1
   my_flag3 = not (my_flag1 or my_flag2)
-  for j in range(len(conf['src_url'])):
-    #generate_m1907_file(th, j, my_flag1)
-    #generate_a_new_sen(th, my_flag2)
-    generate_a_new_sen(th, 1)
-  if my_flag3:
+  if 0:
+    for j in range(len(conf['src_url'])):
+      #generate_m1907_file(th, j, my_flag1)
+      #generate_a_new_sen(th, my_flag2)
+      generate_a_new_sen(th, True)
+  if 1:
     th_list = [th]
     th.start()
     th = GetSensBase(conf)
