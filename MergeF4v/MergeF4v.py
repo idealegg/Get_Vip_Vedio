@@ -16,12 +16,15 @@ st_pattern = re.compile('lasttimestamp\s*:\s*(\d+)')
 move_lock =threading.Lock()
 
 
-def convert2ts(f4v):
+def convert2ts(f4v, des=None):
   ret = [None, 0]
   print f4v
   print type(f4v)
-  ts = os.path.basename(f4v)
-  ts = ts.replace('f4v', 'ts')
+  if des:
+    ts = des
+  else:
+    ts = os.path.basename(f4v)
+    ts = ts.replace('f4v', 'ts')
   print ts
   print type(ts)
   fd = os.popen('avconv -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts -y "%s" 2>&1' % (f4v, ts))
@@ -35,6 +38,22 @@ def convert2ts(f4v):
   return ret
 
 
+def get_ts_info(ts):
+  fd = os.popen('avconv -i "%s" 2>&1' % ts)
+  info = {}
+  for line in fd:
+    if line.startswith('Input #0'):
+      fields = line.split(',')
+      info['type'] = fields[1].strip()
+    elif line.strip().startswith('Duration:'):
+      fields = line.split(',')
+      for field in fields:
+        tmps = field.split(':')
+        info[tmps[0].strip()] = tmps[1].strip()
+  fd.close()
+  return info
+
+
 def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
   print "exec_concat_cmd: ts_list: [%s]" % '|'.join(ts_list)
   print "durition: %d, target: %s, cut_flag: %s" % (duration, new_target, cut_flag)
@@ -43,7 +62,17 @@ def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
   max_ts_a_time_in_cmd = 720
   new_ts_name = '_'.join(['merge', ts_list[0].replace('_0', '_%d')])
   ts_list2 = []
+  ts_list3 = []
   if len(ts_list) > max_ts_a_time_in_cmd:
+    ts_info = get_ts_info(ts_list[0])
+    if ('type' in ts_info and ts_info['type'] != 'mpegts') or (
+      'start' in ts_info and float(ts_info['start']) > 2
+    ):
+      for ts in ts_list:
+        flv_ts = "_".join(['flv', ts])
+        ts_list3.append(flv_ts)
+        os.rename(ts, flv_ts)
+        convert2ts(flv_ts, ts)
     while len(ts_list) - i > 0:
       ts_num = min(len(ts_list) - i, max_ts_a_time_in_cmd)
       cmd = 'avconv -i "concat:%s" -c copy -y %s 2>&1' % (
