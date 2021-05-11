@@ -10,51 +10,12 @@ import re
 
 
 max_dur = 14 * 60
+sharpness = 1.5
 
-
-def get_offset(offset):
-    sec = offset % 60
-    mi = offset // 60
-    ho = mi // 60
-    mi = mi % 60
-    return "%02d:%02d:%02d" % (ho, mi, sec)
-
-def do_task(cmds):
-    for cmd in cmds:
-        print(cmd)
-        os.system(cmd)
-
-def split_mp4(mp4_inf):
-    mp4 = mp4_inf['name']
-    cmd = "avconv -i %s 2>&1|grep Duration" % mp4
-    tmp = os.popen(cmd)
-    duration = 0
-    offset = mp4_inf['start']
-    endt = mp4_inf['end']
-    th_list = []
-    for line in tmp:
-        print(line)
-        if line.count("Duration:"):
-            res = re.search("Duration:\s*(\d{2}):(\d{2}):(\d{2}).(\d{2}),", line)
-            if res:
-                duration = int(res.group(1)) * 3600 + int(res.group(2)) * 60 + int(res.group(3)) + int(res.group(4))/100
-                print("Get a duration: %s" % duration)
-                break
-    while duration - endt > offset:
-        index = str(offset // max_dur +1)
-        slice_n = "".join([mp4.replace(".mp4", ''), '_', index, ".mp4"])
-        slice_n2 = "".join([mp4.replace(".mp4", ''), '_', index, "_2", ".mp4"])
-        cmd = "avconv -i %s -ss %s -t %s -vf transpose=2 -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n)
-        #cmd = "avconv -i %s -ss %s -t %s -c copy -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n2)
-        #cmd1 = "avconv -i %s -vf transpose=1 -y %s 2>&1" %(slice_n2, slice_n)
-        #cmd2 = "rm %s" % slice_n2
-        do_task([cmd])
-        offset += max_dur
 
 def img_enhance(image):
     # 锐度增强
     enh_sha = ImageEnhance.Sharpness(image)
-    sharpness = 3.0
     image_sharped = enh_sha.enhance(sharpness)
     # image_sharped.show()
     return image_sharped
@@ -93,32 +54,56 @@ def mp4_enhance(mp4):
     os.system('rm %s' % slice_n)
     os.system('rm %s' % aac)
 
+def get_offset(offset):
+    sec = offset % 60
+    mi = offset // 60
+    ho = mi // 60
+    mi = mi % 60
+    return "%02d:%02d:%02d" % (ho, mi, sec)
+
+def do_task(cmds):
+    for cmd in cmds:
+        print(cmd)
+        os.system(cmd)
+
+def split_mp4(mp4_inf):
+    mp4 = mp4_inf['name']
+    cmd = "avconv -i %s 2>&1|grep Duration" % mp4
+    tmp = os.popen(cmd)
+    duration = 0
+    offset = mp4_inf['start']
+    endt = mp4_inf['end']
+    th_list = []
+    for line in tmp:
+        print(line)
+        if line.count("Duration:"):
+            res = re.search("Duration:\s*(\d{2}):(\d{2}):(\d{2}).(\d{2}),", line)
+            if res:
+                duration = int(res.group(1)) * 3600 + int(res.group(2)) * 60 + int(res.group(3)) + int(res.group(4))/100
+                print("Get a duration: %s" % duration)
+                break
+    while duration - endt > offset:
+        index = str(offset // max_dur +1)
+        slice_n = "".join([mp4.replace(".mp4", ''), '_', index, ".mp4"])
+        slice_n2 = "".join([mp4.replace(".mp4", ''), '_', index, "_2", ".mp4"])
+        cmd = "avconv -i %s -ss %s -t %s -vf transpose=2 -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n)
+        #cmd = "avconv -i %s -ss %s -t %s -c copy -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n2)
+        #cmd1 = "avconv -i %s -vf transpose=1 -y %s 2>&1" %(slice_n2, slice_n)
+        #cmd2 = "rm %s" % slice_n2
+        do_task([cmd])
+        mp4_enhance(slice_n)
+        offset += max_dur
+
 
 def main(mp4s):
     for mp4 in mp4s:
         split_mp4(mp4)
 
 if __name__ == "__main__":
-    if 0:
-        main([
-        #{'name': u"09dota提高班网通1房拆黑小骷髅第一视角.mp4", 'start': 26, 'end': 0},
-        #{'name': u"09dota提高班召唤师卡尔的华丽舞步.mp4", 'start': 38, 'end': 0},
-        #{'name': u"【09dota提高班】顶着延迟加卡的蝴蝶小强.mp4", 'start': 38 + max_dur *0, 'end': 0},
-        #{'name': u"【09dota提高班】速成输出王黑鸟.mp4", 'start': 10 + max_dur * 2, 'end': 35},
-        #{'name': u"【09dota提高班】蚂蚁-新版本Carry英雄.mp4", 'start': 38 + max_dur * 0, 'end': 0},
-        #{'name': u"【09dota提高班】WE新人的犀利狗和09的稳重狗.mp4", 'start': 38 + max_dur * 4, 'end': 44},
-        # {'name': u"【09dota提高班】多变的收割机痛苦女王.mp4", 'start': 0 + max_dur * 0, 'end': 90},
-        # {'name': u"【09dota提高班】54分钟42杀的痛苦女王.mp4", 'start': 0 + max_dur * 0, 'end': 12},
-        # {'name': u"【09dota超清提高班】帅气敌法篇.mp4", 'start': 22 + max_dur * 0, 'end': 30},
-        # {'name': u"【09dota提高班】死灵龙一样打C.mp4", 'start': 22 + max_dur * 0, 'end': 167},
-         # {'name': u"【09dota超清提高班】蝙蝠骑士的妖娆火焰.mp4", 'start': 22 + max_dur * 0, 'end': 0},
-         # {'name': u"【09dota提高班】VIPER的单杀是一种信仰.mp4", 'start': 82 + max_dur * 0, 'end': 70},
-         {'name': u"【09dota超清提高班】暴力火卡.mp4", 'start': 22 + max_dur * 0, 'end': 0},
-         {'name': u"【09dota超清提高班】恶魔巫师.mp4", 'start': 32 + max_dur * 0, 'end': 0},
-        ])
-    else:
-        for i in range(1, 10):
-            mp4_enhance("【09dota超清提高班】恶魔巫师_%s.mp4"% i)
+    main([
+    {'name': u"【09dota超清提高班】纯爷们第一视角.mp4", 'start': 30 + max_dur * 0, 'end': 0},
+    {'name': u"【09dota超清提高班】月之骑士.mp4", 'start': 22 + max_dur * 0, 'end': 0},
+    ])
 
 
 
