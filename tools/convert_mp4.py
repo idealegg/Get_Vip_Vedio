@@ -10,13 +10,26 @@ import re
 
 
 max_dur = 14 * 60
-sharpness = 1.5
+brightness = 1.5
+color = 1.5
+contrast = 1.5
+sharpness = 2.0
+sharpness_times = 1.0
 
 
 def img_enhance(image):
+    #亮度增强
+    enh_bri = ImageEnhance.Brightness(image)
+    image_brightened = enh_bri.enhance(brightness)
+    #色度增强
+    enh_col = ImageEnhance.Color(image_brightened)
+    image_colored = enh_col.enhance(color)
+    #对比度增强
+    enh_con = ImageEnhance.Contrast(image_colored)
+    image_contrasted = enh_con.enhance(contrast)
     # 锐度增强
-    enh_sha = ImageEnhance.Sharpness(image)
-    image_sharped = enh_sha.enhance(sharpness)
+    enh_sha = ImageEnhance.Sharpness(image_contrasted)
+    image_sharped = enh_sha.enhance(sharpness*sharpness_times)
     # image_sharped.show()
     return image_sharped
 
@@ -67,8 +80,9 @@ def do_task(cmds):
         os.system(cmd)
 
 def split_mp4(mp4_inf):
+    global sharpness_times
     mp4 = mp4_inf['name']
-    cmd = "avconv -i %s 2>&1|grep Duration" % mp4
+    cmd = "avconv -i %s 2>&1|grep -e Video -e Duration" % mp4
     tmp = os.popen(cmd)
     duration = 0
     offset = mp4_inf['start']
@@ -81,12 +95,18 @@ def split_mp4(mp4_inf):
             if res:
                 duration = int(res.group(1)) * 3600 + int(res.group(2)) * 60 + int(res.group(3)) + int(res.group(4))/100
                 print("Get a duration: %s" % duration)
-                break
+        elif line.count('Video'):
+            res = re.search("\s(\d+)x(\d+)\s", line)
+            if res:
+                old_width = int(res.group(1))
+                old_height = int(res.group(2))
+                print("w h: %sx%s"%(old_width, old_height))
+                sharpness_times = 1280 * 720 / old_width / old_height
     while duration - endt > offset:
         index = str(offset // max_dur +1)
         slice_n = "".join([mp4.replace(".mp4", ''), '_', index, ".mp4"])
         slice_n2 = "".join([mp4.replace(".mp4", ''), '_', index, "_2", ".mp4"])
-        cmd = "avconv -i %s -ss %s -t %s -vf transpose=2 -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n)
+        cmd = "avconv -i %s -ss %s -t %s -s 720x1280 -vf transpose=2 -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n)
         #cmd = "avconv -i %s -ss %s -t %s -c copy -y %s 2>&1" %(mp4, get_offset(offset), max_dur if ((duration - endt) > (offset + max_dur)) else int(duration - endt -offset), slice_n2)
         #cmd1 = "avconv -i %s -vf transpose=1 -y %s 2>&1" %(slice_n2, slice_n)
         #cmd2 = "rm %s" % slice_n2
@@ -100,10 +120,13 @@ def main(mp4s):
         split_mp4(mp4)
 
 if __name__ == "__main__":
-    main([
-    {'name': u"【09dota超清提高班】纯爷们第一视角.mp4", 'start': 30 + max_dur * 0, 'end': 0},
-    {'name': u"【09dota超清提高班】月之骑士.mp4", 'start': 22 + max_dur * 0, 'end': 0},
-    ])
+    if 1:
+        main([
+{'name': u"【09dota超清提高班】纯爷们第一视角.mp4", 'start': 30 + max_dur * 0, 'end': 0},
+        ])
+    else:
+        mp4_enhance("tmp.mp4")
+
 
 
 
