@@ -131,7 +131,7 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
       j = json.load(f_json)
   index = 0
   outs = []
-  name = re.sub('[\s()]', '', j['data']['data']['video']['title'])
+  name = re.sub('[\s()/]', '_', j['data']['data']['video']['title'])
   c_stream = list(map(lambda x: x['stream_type'], j['data']['data']['stream']))
   #stream_type = ['mp4hd2v2', 'mp4hd2', 'mp4hd', 'mp4sd', '3gphd', 'flvhd']
   try:
@@ -425,14 +425,13 @@ if __name__ == "__main__":
                            # "http://v.youku.com/v_show/id_XNTMwOTU3NDc2.html",  # 【09DOTA零单第二季】1-2船长和劣势路1V9的 01:38:24
                            # "http://v.youku.com/v_show/id_XNTMzMTkyNDk2.html",  # 【09DOTA零单第二季】3-5tiny/bane/nec 01:19:12
                            # "http://v.youku.com/v_show/id_XNTM0ODUwMzU2.html",  # 【09DOTA零单第二季】6-7卡尔蚂蚁 01:14:02
-                           # "http://v.youku.com/v_show/id_XNTM4Mzg1Njcy.html",  # 【09dota零单第二季】拉比克，龙鹰，蝙蝠 01:54:45
-                           # "http://v.youku.com/v_show/id_XNTQxNDA5ODU2.html",  # 【09dota零单第二季】11-13暗夜魔王 02:10:32
-                           # "http://v.youku.com/v_show/id_XNTQyNzgzNzY0.html",  # 【09dota零单第二季】14-15大酒神之根？ 01:15:14
-                           # "http://v.youku.com/v_show/id_XNTQ1NTM0MzQ0.html",  # 【09DOTA零单第二季】16-18SNK,BH,LUNA 02:12:10
-                           # "http://v.youku.com/v_show/id_XNTQ4Mzk3NDI0.html",
-                           # # 【09dota零单第二季】19-20伐木机，神灵！（其实不是） 01:15:08
-                           # "http://v.youku.com/v_show/id_XNTQ4ODgwODUy.html",  # 【09dota零单第二季】21,22混沌蝙蝠 59:00
-                           # "http://v.youku.com/v_show/id_XNTQ5MzkwODMy.html",  # 【09dota零单第二季】23大后期的故事 01:01:31
+                           "http://v.youku.com/v_show/id_XNTM4Mzg1Njcy.html",  # 【09dota零单第二季】拉比克，龙鹰，蝙蝠 01:54:45
+                           "http://v.youku.com/v_show/id_XNTQxNDA5ODU2.html",  # 【09dota零单第二季】11-13暗夜魔王 02:10:32
+                           "http://v.youku.com/v_show/id_XNTQyNzgzNzY0.html",  # 【09dota零单第二季】14-15大酒神之根？ 01:15:14
+                           "http://v.youku.com/v_show/id_XNTQ1NTM0MzQ0.html",  # 【09DOTA零单第二季】16-18SNK,BH,LUNA 02:12:10
+                           "http://v.youku.com/v_show/id_XNTQ4Mzk3NDI0.html",  # 【09dota零单第二季】19-20伐木机，神灵！（其实不是） 01:15:08
+                           "http://v.youku.com/v_show/id_XNTQ4ODgwODUy.html",  # 【09dota零单第二季】21,22混沌蝙蝠 59:00
+                           "http://v.youku.com/v_show/id_XNTQ5MzkwODMy.html",  # 【09dota零单第二季】23大后期的故事 01:01:31
                            "http://v.youku.com/v_show/id_XNTUxMzIzMzc2.html",  # 【09DOTA零单第二季】24-26小黑影魔骨弓 01:46:09
                            "http://v.youku.com/v_show/id_XNTU0MzM1NDY0.html",  # 【09DOTA零单第二季】27影魔 01:21:59
                            "http://v.youku.com/v_show/id_XNTU1MjY0NTU2.html",  # 【09DOTA零单第二季】28人马 01:07:54
@@ -807,6 +806,7 @@ if __name__ == "__main__":
         #time.sleep(random.random()*10+2)
         if not generate_youku_file(th, j, True):
           exit(1)
+          pass
     else:
       f_list = os.listdir(th.store_dir)
       json_list = list(filter(lambda x: x.endswith('.json'), f_list))
