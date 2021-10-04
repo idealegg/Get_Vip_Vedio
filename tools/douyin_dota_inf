@@ -1,0 +1,120 @@
+ffmpeg -i 0.mp4 -vf transpose=1 c.mp4
+
+-ar 44100
+
+【09dota提高班】网通1房拆黑小骷髅第一视角（一） #经典游戏 #dota
+
+【09dota提高班】召唤师卡尔的华丽舞步 (一） #经典游戏 #dota 
+
+【09dota提高班】顶着延迟加卡的蝴蝶小强 (一） #经典游戏 #dota 
+
+
+【09dota提高班】速成输出王黑鸟 (一） #经典游戏 #dota 
+
+
+【09dota提高班】蚂蚁-新版本Carry英雄的首选 (一） #经典游戏 #dota 
+
+【09dota提高班】WE新人的犀利狗和09的稳重狗 (一） #经典游戏 #dota 
+
+【09dota提高班】多变的收割机痛苦女王 (一） #经典游戏 #dota 
+
+【09dota提高班】54分钟42杀的痛苦女王 (一） #经典游戏 #dota 
+
+【09dota提高班】死灵龙一样打C (一） #经典游戏 #dota 
+
+【09dota超清提高班】帅气敌法篇 (一） #经典游戏 #dota 
+
+【09dota提高班】VIPER的单杀是一种信仰 (一） #经典游戏 #dota 
+
+【09dota超清提高班】蝙蝠骑士的妖娆火焰 (一） #经典游戏 #dota 
+
+【09dota超清提高班】暴力火卡 (一） #经典游戏 #dota 
+
+【09dota超清提高班】恶魔巫师 (一） #经典游戏 #dota 
+
+【09dota提高班】山岭巨人第一视角 (一） #经典游戏 #dota 
+
+【09dota提高班】巫医第一视角 (一） #经典游戏 #dota
+
+【09dota超清提高班】压制流敌法 (一） #经典游戏 #dota
+
+【09dota提高班】月之女祭司 (一） #经典游戏 #dota
+
+【09dota超清提高班】月之骑士 (一） #经典游戏 #dota
+
+【09dota超清提高班】纯爷们第一视角 (一） #经典游戏 #dota
+
+【09dota超清提高班】曾经第一后期黑弓 (一） #经典游戏 #dota
+
+09提高班
+
+小骷髅第一视角（二）
+
+avconv -i /tmp/a.wav -s 640x480 -i /tmp/a.yuv /tmp/a.mpg
+
+avconv -i /tmp/a.wav -ar 22050 /tmp/a.mp2
+
+
+1080 - 950
+
+780 - 890 , 540 - 620
+
+avconv -i 2009.png -s 80x110 -vf transpose=1 2009_2.png
+
+ -vf 'scale=1280:534,pad=1280:720:0:93:black'  “宽”、“高”、“X坐标”和“Y坐标”，宽和高指的是输入视频尺寸（包含加黑边的尺寸），XY指的是视频所在位置。
+
+String videoCommend = "ffmpeg -i " + infile + " -vcodec libx264 -r 29.97 -b 768k -ar 24000 -ab 64k -s 1280x720 "
+                                    + outfile;
+
+https://pl-ali.youku.com/playlist/m3u8?vid=XMjM4MTYzMjY4&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=7bfd17a9dd45772abf9238418899dbad43346&app_ver=2.1.63&duration=2811&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=200000006B99BEC50BA14AC7E5480D769C4A42CE02000000&ups_ts=1618398340&onOff=0&encr=0&ups_key=e7c5858f1c52c95ed0cb0e627087f210
+
+https://pl-ali.youku.com/playlist/m3u8?vid=XMjQwNzY5MDQw&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=c6a0315b10f16a23be6cee78e55b224143346&app_ver=2.1.63&duration=3324&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=2000000007D0BD358034919EE1F0D802DF42C29C02000000&ups_ts=1618398473&onOff=0&encr=0&ups_key=a2a0499198ee4d9cc8d83a96f1e55b64
+
+http://pl-ali.youku.com/playlist/m3u8?vid=XMjQwNzY5MDQw&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=c6a0315b10f16a23be6cee78e55b224143346&app_ver=2.1.63&duration=3324&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=2000000007D0BD358034919EE1F0D802DF42C29C02000000&ups_ts=1618398473&onOff=0&encr=0&ups_key=a2a0499198ee4d9cc8d83a96f1e55b64
+
+http://pl-ali.youku.com/playlist/m3u8?vid=XMjQwNzY5MDQw&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=c6a0315b10f16a23be6cee78e55b224143346&app_ver=2.1.63&duration=3324&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=2000000007D0BD358034919EE1F0D802DF42C29C02000000&ups_ts=1618398473&onOff=0&encr=0&ups_key=a2a0499198ee4d9cc8d83a96f1e55b64
+
+{"type":"movie","data":[{"name":"少年的你","year":"2019","source":{"eps":[
+{"name":"【09dota提高班】WE新人的犀利狗和09的稳重狗","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjQyODM3ODI0&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=6e06133b7436493d052bfb2257ec4d3d43346&app_ver=2.1.63&duration=5558&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=2000000062FCD657F1DA133C0670BD8E5A94929D02000000&ups_ts=1618399392&onOff=0&encr=0&ups_key=16349b5d0181f3292f28e12e41c2d111"},
+{"name":"【09dota解说】DK三人组的路人之旅","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjQzMDY4ODE2&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=8de5b1d60ca82a784068927b98e08b8243346&app_ver=2.1.63&duration=3483&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=20000000DBC56782EA349CE3CE7A564F0E37F17D02000000&ups_ts=1618399594&onOff=0&encr=0&ups_key=129b004b0180d447dd8473508cf55a9f"},
+{"name":"【09dota解说】WE内部训练赛","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjQ0MzQ1ODIw&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=1c93647e1d460d9bb3aa4ff18bd9db7a43346&app_ver=2.1.63&duration=4530&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=20000000AB859524D919A9DF2E25C62EC0FCD69602000000&ups_ts=1618399688&onOff=0&encr=0&ups_key=7905f3cfbb5d324b3a91ec8805391cd9"},
+{"name":"【09dota解说】2011的第一个冠军花落谁家","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjQ1MTk0MTI4&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=629a9a1ec3b88953efb14601066a4d6b43346&app_ver=2.1.63&duration=7213&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=20000000EC7FBEDA576F37C99DC41321874785D802000000&ups_ts=1618399719&onOff=0&encr=0&ups_key=aeefca3cd8bc50d6a8ad4bc869488109"},
+{"name":"【09dota提高班】多变的收割机痛苦女王","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjQ2OTgzMDc2&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=6046b159c786f8352ea72cedefb898ef43346&app_ver=2.1.63&duration=5066&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=200000001F051132D7364D091F23B5B3742B4E3202000000&ups_ts=1618399751&onOff=0&encr=0&ups_key=00c9db396ed4fee8a1a5dd5a1358179a"},
+{"name":"【09dota提高班】54分钟42杀的痛苦女王","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjQ3MTAwMzIw&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=7c956ebf7d845309934caa9f9b92178143346&app_ver=2.1.63&duration=3479&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=2000000069C844CFA2BC05C756C8E0DC0C96903402000000&ups_ts=1618399790&onOff=0&encr=0&ups_key=948682dfe143893892ba020e103b5d4e"},
+{"name":"【09dota解说】CHUAN神霸气SF领衔WE对LGD秘密训","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjUwMTI2NzM2&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=d50da3b6228b3c5eb12d894a44a1771543346&app_ver=2.1.63&duration=5181&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=20000000A8E7D2DE28B31B43A2AD84A0C7C347C702000000&ups_ts=1618399842&onOff=0&encr=0&ups_key=e60665fc20d509c43919932aa1d158f7"},
+{"name":"【09dota提高班】死灵龙一样打C，内有09献歌","url":"https://pl-ali.youku.com/playlist/m3u8?vid=XMjUyNDE2MzIw&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=1b6553d954cccb3f8f399fbdd7ceb28543346&app_ver=2.1.63&duration=4890&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=2000000062B5FC056CDFD3A405906281F3C4384802000000&ups_ts=1618399878&onOff=0&encr=0&ups_key=62bacabb14048f85e8fa97b97393cfc8"}
+]}}],"ep":"1","y":[{"tType":"show","showName":"饿了么红包 天天可领！平均领10元！","showType":"text","clickType":"link","clickContent":"https://t0ay8.m1907.cn/ele/","clickId":"busds6g6kkmte8lsjhm0"}],"sp":0}
+
+
+1 【09dota提高班】顶着延迟加卡的蝴蝶小强
+2 【09dota提高班】速成输出王黑鸟
+3 【2009讲dota】P神影魔B神水人年终决战
+4 【dota心态篇】面对外挂和冤枉，要淡定
+5 【09dota提高班】蚂蚁-新版本Carry英雄
+6 【09dota提高班】WE新人的犀利狗和09的稳重狗
+7 【09dota解说】DK三人组的路人之旅
+8 【09dota解说】WE内部训练赛
+9 【09dota解说】2011的第一个冠军花落谁家
+10 【09dota提高班】多变的收割机痛苦女王
+11 【09dota提高班】54分钟42杀的痛苦女王
+12 【09dota解说】CHUAN神霸气SF领衔WE对LGD秘密训
+13 【09dota提高班】死灵龙一样打C，内有09献歌
+
+
+浏览器报错 CORS 请求不是 http
+
+火狐浏览器设置步骤:
+1.进入火狐配置页进行设置 ,地址栏输入"about:config"
+2.点击”我了解此风险”后进入页面
+3.搜索”security.fileuri.strict_origin_policy”,并设置该项为false
+4.重启浏览器，可以跨域访问
+
+谷歌浏览器:
+不支持,别浪费力气了
+
+http://v.youku.com/v_show/id_XMjM2NjY1NDY4.html?spm=a2hzp.8253869.0.0
+
+http://v.youku.com/v_show/id_XMjMzNDYyNjA0.html?spm=a2hzp.8253869.0.0
+
+
+14 E:\hzw\store\14.m3u8 【09dota提高班】顶着延迟加卡的蝴蝶小强
