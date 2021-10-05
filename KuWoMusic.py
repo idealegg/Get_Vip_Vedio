@@ -123,9 +123,13 @@ def get_a_album(aid, pn):
             print("response: " + req.content)
             j = json.loads(req.content)
             if "code" in j and j['code'] == 200:
+                global ourdir
                 name = j['data']['album']
                 with open(os.path.join(ourdir, "%s_%s.txt" % (name, pn)), "wb") as fd:
                     fd.write(req.content)
+                ourdir=os.path.join(ourdir, name)
+                if not os.path.isdir(ourdir):
+                    os.mkdir(ourdir)
                 for mp3 in j['data']['musicList']:
                     get_a_mp3(mp3['name'], mp3['rid'])
 
@@ -145,11 +149,32 @@ nald Had a Farm">Old MacDonald Had a Farm</a>'''
             for mp3 in ns:
                 get_a_mp3(mp3['title'], mp3['href'].replace("/play_detail/", ''))
 
+
+def get_pages(aid):
+    with requests.get("http://bd.kuwo.cn/album_detail/%s"%aid) as req:
+        print("get_pages req return code: %d" % req.status_code)
+        if req.status_code == 200:
+            bs = BeautifulSoup(req.content, "html.parser")
+            ns = bs.find_all('ul', attrs={'class': 'flex_c', 'data-v-1344465b': None})
+            '''[<ul class="flex_c" data-v-9fcc0c74=""><li data-v-9fcc0c74="" style="background:
+            #FFDF1F;"><span class="notCursor currentPage" data-v-9fcc0c74="">1</span></li><l
+            i data-v-9fcc0c74=""><span data-v-9fcc0c74="">2</span></li><li data-v-9fcc0c74="
+            "><span data-v-9fcc0c74="">3</span></li><li data-v-9fcc0c74=""><span data-v-9fcc
+            0c74="">4</span></li></ul>]
+            '''
+            print(ns)
+            if len(ns) == 1:
+                lis = ns[0].find_all('span')
+                return len(lis)
+    return 1
+
+
 if __name__ == "__main__":
     ourdir = r"I:\temp\xx\child_songs"
+    aid=20092293
     if not os.path.isdir(ourdir):
         os.mkdir(ourdir)
     #get_a_mp3(u"两只老虎", 79914233)
     #parse_a_album("http://bd.kuwo.cn/album_detail/10180760", u"贝乐虎儿歌")
-    for p in range(3,5):
-        get_a_album(10180760, p)
+    for p in range(1,get_pages(aid)+1):
+        get_a_album(aid, p)
