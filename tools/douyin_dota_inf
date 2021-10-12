@@ -46,6 +46,17 @@ ffmpeg -i 0.mp4 -vf transpose=1 c.mp4
 
 【09dota超清提高班】曾经第一后期黑弓 (一） #经典游戏 #dota
 
+【09dota提高班】疯脸小黑和30分钟三圣剑PA (一） #经典游戏 #dota
+
+【09dota提高班】嘲讽猎人和精打细算猫 (一） #经典游戏 #dota
+
+【09dota提高班】疯狂的死骑和多舛的赏金 (一） #经典游戏 #dota
+
+【09dota提高班】无与伦比的华丽风行 (一） #经典游戏 #dota
+
+【09dota提高班】风行者完结篇 (一） #经典游戏 #dota
+
+
 09提高班
 
 小骷髅第一视角（二）
@@ -65,6 +76,12 @@ avconv -i 2009.png -s 80x110 -vf transpose=1 2009_2.png
 
 String videoCommend = "ffmpeg -i " + infile + " -vcodec libx264 -r 29.97 -b 768k -ar 24000 -ab 64k -s 1280x720 "
                                     + outfile;
+
+#ffmpeg -i ad.mp4 -af "volume=enable='between(t,2,9)':volume=0, volume=enable='between(t,15,20)':volume=0" adb.mp4
+ffmpeg -i ad.mp4 -af "volume=enable='between(t,2,9)':volume=0" adb.mp4
+
+06:11， 06:15， 06:42 06:44， 
+ffmpeg -i 【09dota提高班】疯脸小黑和30分钟三圣剑PA_3_2.mp4 -af "volume=enable='between(t,371,375)':volume=0, volume=enable='between(t,402,404)':volume=0" adb.mp4
 
 https://pl-ali.youku.com/playlist/m3u8?vid=XMjM4MTYzMjY4&type=flv&ups_client_netip=3d335fc2&utid=lsrgF2BcrDYCAT0zX8K67uS1&ccode=0502&psid=7bfd17a9dd45772abf9238418899dbad43346&app_ver=2.1.63&duration=2811&expire=18000&drm_type=1&drm_device=7&nt=1&play_ability=16782592&media_type=standard,subtitle&dyt=1&btf=&rid=200000006B99BEC50BA14AC7E5480D769C4A42CE02000000&ups_ts=1618398340&onOff=0&encr=0&ups_key=e7c5858f1c52c95ed0cb0e627087f210
 
