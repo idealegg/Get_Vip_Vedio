@@ -63,6 +63,8 @@ def get_a_page(id, src):
                     with open(os.path.join(cur_dir, mp3_name), "wb") as m3:
                         m3.write(req2.content)
                         print("write MP3 [%s] [%s] ok: " % (mp3_name, id))
+            if not os.listdir(cur_dir):
+                os.rmdir(cur_dir)
 
 
 if __name__ == "__main__":
