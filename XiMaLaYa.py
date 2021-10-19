@@ -85,8 +85,8 @@ def get_a_mp3(id, name, outdir, trackUrl, ptype=1):
                             fd.write(req2.content)
 
 
-def get_an_album(aid, outdir):
-    textmod = {"id": aid, 'num': 1, 'sort': -1, 'size': 30, 'ptype': 0}
+def get_an_album(aid, outdir, num):
+    textmod = {"id": aid, 'num': num, 'sort': -1, 'size': 300, 'ptype': 0}
     url = 'https://www.ximalaya.com/revision/play/v1/show'
     with requests.get(url=url, params=textmod, headers=header_dict) as req:
         print("get_an_album [%s] return code: %d" % (id, req.status_code))
@@ -109,6 +109,9 @@ if __name__ == "__main__":
     outdir = r'E:\hzw\xmly'
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
-    albums = (52905857,)
+    albums = (
+        #52905857,
+        29276844,)
     for aid in albums:
-        get_an_album(aid, outdir)
+        for num in range(2, 11):
+            get_an_album(aid, outdir, num)
