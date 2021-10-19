@@ -10,6 +10,7 @@ import pprint
 import random
 
 
+#ffmpeg -i http://www.xxx.com/xxx.m3u8 name.mp4
 path_coding = 'ISO-8859-1'
 file_coding = 'Windows-1252'
 KEY_PATTERN = re.compile('#EXT-X-KEY\s*:\s*METHOD\s*=\s*([^,]+?),\s*URI\s*=\s*"([^"]+?)"')
@@ -155,6 +156,10 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
       j['data']['data']['stream'][index]['milliseconds_video'],
       j['data']['data']['stream'][index]['size'] / j['data']['data']['stream'][index]['milliseconds_video'] * 1000 * 8 / 1024,
     ))
+    if gsb.conf['direct_download_m3u8']:
+      cmd = 'avconv -i "%s" -c copy %s' % (url, os.path.join(gsb.target_dir, "%s.mp4" % name))
+      ret = os.system(cmd)
+      return ret == 0
     req = gsb.get_req(url)
     print "url: %s" % url
     print "req: %s" % req
@@ -210,6 +215,7 @@ def a():
 if __name__ == "__main__":
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
   conf={'base_dir': r'E:\hzw',
+        'direct_download_m3u8': True,
                          'check_downloaded_retry': 5,
                          'session_number': 4,
                          'threading_num': 6,
