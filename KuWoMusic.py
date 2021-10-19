@@ -179,7 +179,7 @@ if __name__ == "__main__":
         os.mkdir(outdir)
     #get_a_mp3(u"两只老虎", 79914233)
     #parse_a_album("http://bd.kuwo.cn/album_detail/10180760", u"贝乐虎儿歌")
-    for aid in (16749226,):
+    for aid in (22619547,):
         pages = get_pages(aid)
         for p in range(pages):
             print("[Album %s][Page %s/%s]:" % (aid, p+1, pages))
