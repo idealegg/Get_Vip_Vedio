@@ -75,10 +75,9 @@ def get_a_mp3(id, name, outdir, trackUrl, ptype=1):
             req.close()
             if 'ret' in j and j['ret'] == 0:
                 mp3 = filter(lambda x: x['type'] == 'MP3_64', j['trackInfo']['playUrlList'])[0]
-                mp3_url = decode_url(mp3['url'])
+                mp3_url = decode_url(mp3['url']).strip()
                 print("url: %s" % mp3_url)
-                up = urlparse(url)
-                with requests.get(url="%s://%s%s"%(up.scheme, up.netloc, up.path), params=dict(parse_qsl(up.query)), headers=header_dict ) as req2:
+                with requests.get(mp3_url) as req2:
                     print("to download mp3 [%s] return code: %d" % (id, req2.status_code))
                     if req2.status_code == 200:
                         with open(os.path.join(outdir, "%s.mp3" % name), 'wb') as fd:
@@ -111,7 +110,7 @@ if __name__ == "__main__":
         os.mkdir(outdir)
     albums = (
         #52905857,
-        29276844,)
+        16818055,)
     for aid in albums:
-        for num in range(2, 11):
+        for num in range(1, 8):
             get_an_album(aid, outdir, num)
