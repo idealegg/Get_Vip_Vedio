@@ -7,6 +7,7 @@ import pdfkit
 import requests
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileMerger
+import psutil
 
 
 # wkhtmltopdf --enable-local-file-access -B 30 -T 30 --footer-html footer.html --footer-right [page] --header-html header.html --footer-spacing 10 --header-spacing 10 cover https://www.baidu.com toc --toc-header-text "目录" --disable-dotted-lines --toc-text-size-shrink 1 xxxx.html xxxx.pdf
@@ -134,10 +135,11 @@ def main(iurl, file_name):
         print (u"转换完成第"+str(i)+'个html')
     merger = PdfFileMerger()
     for i, pdf in enumerate(pdfs):
-       merger.append(pdf, bookmark=urls[i][1])
-       print (u"合并完成第"+str(i)+'个pdf'+pdf)
-    output = open(u"%s.pdf" % file_name, "wb")
-    merger.write(output)
+        with open(pdf, 'rb') as fpdf:
+            merger.append(fpdf, bookmark=urls[i][1]) # 这里会占用pdf文件导致删除失败
+            print (u"合并完成第"+str(i)+'个pdf'+pdf)
+    with open(u"%s.pdf" % file_name, "wb") as output:
+        merger.write(output)
     print (u"输出PDF成功！")
     for html in htmls:
         os.remove(html)
@@ -146,6 +148,7 @@ def main(iurl, file_name):
         try:
             os.remove(pdf)
         except Exception as e:
+            #psutil.Process(os.getpid()).open_files()
             print(e)
         print (u"删除临时文件"+pdf)
     total_time = time.time() - start

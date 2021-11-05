@@ -88,8 +88,9 @@ def download_one(file_name):
         print (u"转换完成第"+str(i)+'个html')
     merger = PdfFileMerger()
     for i, pdf in enumerate(pdfs):
-       merger.append(pdf, bookmark=urls[i][1])
-       print (u"合并完成第"+str(i)+'个pdf'+pdf)
+        with open(pdf, 'rb') as fpdf:
+            merger.append(fpdf, bookmark=urls[i][1])  # 这里会占用pdf文件导致删除失败
+            print (u"合并完成第" + str(i) + '个pdf' + pdf)
     with open("%s.pdf" % file_name, "wb") as output:
         merger.write(output)
     print (u"输出PDF成功！")
