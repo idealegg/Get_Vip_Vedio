@@ -30,12 +30,12 @@ def get_good_name(s, to_replace=True):
     for ch in s:
             if u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62]+'_-.':
                 res.append(ch)
-            elif to_replace and res and res[-1] != 'replace_char':
+            elif to_replace and res and res[-1] != replace_char:
                 res.append(replace_char)
-    return ''.join(res)
+    return ''.join(res).strip('_-')
 
 
-def download_one(string):
+def download_one2(string):
     #string  = '在抖音，记录美好生活！ https://v.douyin.com/eSN7g1c/'
     #string = input('粘贴分享链接：')
     shroturl = re.findall('[a-z]+://[\S]+', string, re.I | re.M)[0]
@@ -59,6 +59,7 @@ def download_one(string):
         print('directory exist')
     """new function"""
     year = (
+       # '2016', '2017',
         '2018',
         '2019',
         '2020', '2021')
@@ -102,6 +103,7 @@ def download_one(string):
                 print(videotitle)
                 print(videourl)
                 #start = time.time()
+                print(shroturl)
                 print(b'%s ===>downloading' % videotitle.encode('utf8'))
                 vn += 1
                 vfile = os.path.join(outdir2, '%s_%s.mp4' % (vn, videotitle))
@@ -116,6 +118,18 @@ def download_one(string):
                         print(e)
                         print('download error')
 
+
+def download_one(s):
+    over = False
+    t = 60 * 5
+    while not over:
+        try:
+            download_one2(s)
+            over = True
+        except Exception as e:
+            print(e)
+            time.sleep(t)
+            t += 60 * 5
 
 
 if __name__ == "__main__":
@@ -152,10 +166,10 @@ if __name__ == "__main__":
     #download_one("https://v.douyin.com/Rh7G7kx/")
     #download_one("https://v.douyin.com/Rh7KFcx/")
     #download_one("https://v.douyin.com/Rh7GFw8/")
-    download_one("https://v.douyin.com/RBKfm4E/")
-    download_one("https://v.douyin.com/RBKA3Ge/")
-    download_one("https://v.douyin.com/RBK2nXK/")
-    download_one("https://v.douyin.com/RBKB9B6/")
+    #download_one("https://v.douyin.com/RBKfm4E/")
+    #download_one("https://v.douyin.com/RBKA3Ge/")
+    #download_one("https://v.douyin.com/RBK2nXK/")
+    #download_one("https://v.douyin.com/RBKB9B6/")
     download_one("https://v.douyin.com/RBKAGM9/")
     download_one("https://v.douyin.com/RBKCK6J/")
     download_one("https://v.douyin.com/RBK2Ltf/")
