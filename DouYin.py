@@ -4,6 +4,7 @@ import json
 import os
 import time
 import re
+import string
 
 """
 1.根据用户页面分享的字符串提取短url
@@ -22,6 +23,18 @@ headers = {
     "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"
 }
 
+
+def get_good_name(s, to_replace=True):
+    replace_char = '-'
+    res = []
+    for ch in s:
+            if u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62]+'_-.':
+                res.append(ch)
+            elif to_replace and res and res[-1] != 'replace_char':
+                res.append(replace_char)
+    return ''.join(res)
+
+
 def download_one(string):
     #string  = '在抖音，记录美好生活！ https://v.douyin.com/eSN7g1c/'
     #string = input('粘贴分享链接：')
@@ -37,6 +50,7 @@ def download_one(string):
     userinfo = json.loads(getname)
     print(userinfo)
     name = userinfo['user_info']['nickname']
+    name = get_good_name(name, False)
     print(name)
     outdir2 = os.path.join(outdir, name)
     if not os.path.exists(outdir2):
@@ -82,7 +96,8 @@ def download_one(string):
             print(awemenum)
             for i in range(awemenum):
                 videotitle = data['aweme_list'][i]['desc'].replace("?", "").replace("\"", "").replace(":", "")
-                videotitle = re.sub('[| ;,:?()*^.]', '-', videotitle)
+                #videotitle = re.sub('[| ;,:?()*^.]', '-', videotitle)
+                videotitle = get_good_name(videotitle)
                 videourl = data['aweme_list'][i]['video']['play_addr']['url_list'][0]
                 print(videotitle)
                 print(videourl)
