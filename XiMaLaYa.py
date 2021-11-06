@@ -30,7 +30,7 @@ header_dict = {"Accept": "*/*",
 
 
 def replace_name(name):
-    return re.sub('[| ;,:]', '-', name)
+    return re.sub('[| ;,:/]+', '-', name)
 
 
 def get_a_m4a(id, name, outdir, trackUrl, ptype=1):
@@ -137,9 +137,11 @@ if __name__ == "__main__":
     albums = (
         #52905857,
         #29276844,
-        20859796,
+        #20859796,
+        (31133666, 1, 4),
+
     )
     #get_an_album(52905857, outdir, 1)
     for aid in albums:
-        for num in range(10, 11):
-            get_an_album(aid, outdir, num)
+        for num in range(aid[1], aid[2]):
+            get_an_album(aid[0], outdir, num)
