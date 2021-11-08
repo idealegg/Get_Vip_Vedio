@@ -220,8 +220,7 @@ def get_pages(aid):
     return 1
 
 
-if __name__ == "__main__":
-    outdir = r"D:\private\hd\son"
+def get_album():
     #aid=20092293
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
@@ -232,3 +231,22 @@ if __name__ == "__main__":
         for p in range(pages):
             print("[Album %s][Page %s/%s]:" % (aid, p+1, pages))
             get_a_album(aid, p+1)
+
+
+def get_file():
+    rids=[
+           [574584, u"欢乐颂"],
+           ]
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
+    # get_a_mp3(u"两只老虎", 28861525)
+    for rid in rids:
+        get_a_mp3(rid[1], rid[0], outdir)
+
+
+if __name__ == "__main__":
+    outdir = r"I:\temp\xx\child_songs"
+    if 1:
+        get_file()
+    else:
+        get_album()

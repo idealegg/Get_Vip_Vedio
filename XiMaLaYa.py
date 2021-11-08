@@ -5,7 +5,7 @@ import sys
 import json
 import re
 from bs4 import BeautifulSoup
-from urlparse import urlparse, parse_qsl
+from urllib.parse import urlparse, parse_qsl
 
 
 # npm install crypto-js
@@ -30,7 +30,7 @@ header_dict = {"Accept": "*/*",
 
 
 def replace_name(name):
-    return re.sub('[| ;,:]', '-', name)
+    return re.sub('[| ;,:/]+', '-', name)
 
 
 def get_a_m4a(id, name, outdir, trackUrl, ptype=1):
@@ -58,10 +58,10 @@ def decode_url(s):
     content = ''
     with os.popen(cmd) as fd:
         content = fd.read()
-    return content
+    return content.strip()
 
 
-def get_a_mp3(id, name, outdir, trackUrl, ptype=1):
+def get_a_mp3(id, name, outdir):
     textmod = {"device": 'web',
                "trackId": id,
                }
@@ -74,43 +74,75 @@ def get_a_mp3(id, name, outdir, trackUrl, ptype=1):
             j = json.loads(req.content)
             req.close()
             if 'ret' in j and j['ret'] == 0:
-                mp3 = filter(lambda x: x['type'] == 'MP3_64', j['trackInfo']['playUrlList'])[0]
-                mp3_url = decode_url(mp3['url']).strip()
-                print("url: %s" % mp3_url)
+                mp3 = list(filter(lambda x: x['type'] == 'MP3_64', j['trackInfo']['playUrlList']))[0]
+                mp3_url = decode_url(mp3['url'])
+                print("url: [%s]" % mp3_url)
                 with requests.get(mp3_url) as req2:
                     print("to download mp3 [%s] return code: %d" % (id, req2.status_code))
                     if req2.status_code == 200:
                         with open(os.path.join(outdir, "%s.mp3" % name), 'wb') as fd:
                             fd.write(req2.content)
+                    else:
+                        print(req2.content)
 
 
 def get_an_album(aid, outdir, num):
-    textmod = {"id": aid, 'num': num, 'sort': -1, 'size': 300, 'ptype': 0}
-    url = 'https://www.ximalaya.com/revision/play/v1/show'
-    with requests.get(url=url, params=textmod, headers=header_dict) as req:
-        print("get_an_album [%s] return code: %d" % (id, req.status_code))
-        if req.status_code == 200:
-            print(req.content)
-            j = json.loads(req.content)
-            if 'ret' in j and j['ret'] == 200:
-                mp3s = j['data']['tracksAudioPlay']
-                name = replace_name(mp3s[0]['albumName'])
-                a_outdir = os.path.join(outdir, name)
-                if not os.path.isdir(a_outdir):
-                    os.mkdir(a_outdir)
-                with open("%s.json" % a_outdir, 'wb') as fd:
-                    fd.write(req.content)
-                for mp3 in mp3s:
-                    get_a_mp3(mp3['trackId'], replace_name(mp3['trackName']), a_outdir, mp3['trackUrl'])
+    to_get_album = False
+    j = None
+    dlist = os.listdir(outdir)
+    adirs = list(filter(lambda x: x.startswith("%s_" % aid), dlist))
+    if len(adirs) == 0:
+        to_get_album = True
+    elif os.path.isfile(os.path.join(adirs[0], "%s.json"%aid)):
+        with open(os.path.join(adirs[0], "%s.json"%aid), 'rb') as fj:
+            j = json.load(fj)
+    else:
+        to_get_album = True
+    if to_get_album:
+        textmod = {"id": aid, 'num': num, 'sort': -1, 'size': 30, 'ptype': 0}
+        url = 'https://www.ximalaya.com/revision/play/v1/show'
+        with requests.get(url=url, params=textmod, headers=header_dict) as req:
+            print("get_an_album [%s] return code: %d" % (aid, req.status_code))
+            if req.status_code == 200:
+                print(req.content)
+                j = json.loads(req.content)
+    if j:
+        if 'ret' in j and j['ret'] == 200:
+            mp3s = j['data']['tracksAudioPlay']
+            name = replace_name(mp3s[0]['albumName'])
+            a_outdir = os.path.join(outdir, "%s_%s" % (aid, name))
+            if not os.path.isdir(a_outdir):
+                os.mkdir(a_outdir)
+            aid_json = os.path.join(a_outdir, "%s.json"%aid)
+            down_json = os.path.join(a_outdir, "downloaded.json")
+            if not os.path.isfile(aid_json):
+                with open(aid_json, 'w') as fa:
+                    json.dump(j, fa)
+            jd = {'list': []}
+            if os.path.isfile(down_json):
+                with open(down_json, 'r') as fd:
+                    jd = json.load(fd)
+            for mp3 in mp3s:
+                if mp3['trackId'] not in jd['list']:
+                    get_a_mp3(mp3['trackId'], replace_name(mp3['trackName']), a_outdir)
+                    jd['list'].append(mp3['trackId'])
+                    with open(down_json, 'w') as fd2:
+                        json.dump(jd, fd2)
 
 
 if __name__ == "__main__":
-    outdir = r'E:\hzw\xmly'
+    outdir = r'I:\temp\xx\XiMaLaYa'
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     albums = (
         #52905857,
-        16818055,)
+        #29276844,
+        #20859796,
+        #(31133666, 1, 4),
+        (16818055, 1, 8),
+
+    )
+    #get_an_album(52905857, outdir, 1)
     for aid in albums:
-        for num in range(1, 8):
-            get_an_album(aid, outdir, num)
+        for num in range(aid[1], aid[2]):
+            get_an_album(aid[0], outdir, num)
