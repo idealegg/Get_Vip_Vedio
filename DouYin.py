@@ -9,9 +9,6 @@ import hashlib
 
 
 """
-1.根据用户页面分享的字符串提取短url
-2.根据短url加上302获取location,提取sec_id
-3.拼接视频列表请求url
 params = {
     'sec_uid' : 'MS4wLjABAAAAbtSlJK_BfUcuqyy8ypNouqEH7outUXePTYEcAIpY9rk',
     'count' : '200',
@@ -69,11 +66,11 @@ def remove_dup(d):
             else:
                 md5s[md5] = f
                 stats[f] = st1
-    return stats
+    return md5s, stats
 
 
 def reorder(d, stats):
-    fs = stats.keys()
+    fs = list(stats.keys())
     fs.sort(key=lambda x: stats[x].st_mtime)
     for i, f in enumerate(fs):
         f2 = re.sub('^\d+_', '', f)
@@ -110,8 +107,8 @@ def download_one2(string):
     else:
         print('directory exist')
         last_time = get_last_time(outdir2, last_time)
-        vn = len(os.listdir(outdir2)) + 1
-    """new function"""
+        vn = len(list(filter(lambda x: x.endswith('.mp4'), os.listdir(outdir2))))
+    md5s, stats = remove_dup(outdir2)
     timepool = [x + '-' + y + '-01 00:00:00' for x in year for y in month]
     print(timepool)
     k = len(timepool)
@@ -146,7 +143,7 @@ def download_one2(string):
             # print(type(data))
             awemenum = len(data['aweme_list'])
             print(awemenum)
-            for i in range(awemenum):
+            for i in list(range(awemenum))[::-1]:
                 videotitle = data['aweme_list'][i]['desc'].replace("?", "").replace("\"", "").replace(":", "")
                 #videotitle = re.sub('[| ;,:?()*^.]', '-', videotitle)
                 videotitle = get_good_name(videotitle)
@@ -156,21 +153,23 @@ def download_one2(string):
                 #start = time.time()
                 print(shroturl)
                 print(b'%s ===>downloading' % videotitle.encode('utf8'))
-                vn += 1
-                vfile = os.path.join(outdir2, '%s_%s.mp4' % (vn, videotitle))
-                if not os.path.isfile(vfile):
-                    try:
-                        with requests.get(url=videourl, headers=headers) as req2:
-                            print(req2)
-                            if req2.status_code == 200:
+                try:
+                    with requests.get(url=videourl, headers=headers) as req2:
+                        print(req2)
+                        if req2.status_code == 200:
+                            md5 = hashlib.md5(req2.content).hexdigest()
+                            if md5 not in md5s:
+                                vn += 1
+                                vf = '%s_%s.mp4' % (vn, videotitle)
+                                vfile = os.path.join(outdir2, vf)
                                 with open(vfile, 'wb') as v:
                                     v.write(req2.content)
-                    except Exception as e:
-                        print(e)
-                        print('download error')
+                                md5s[md5] = vf
+                except Exception as e:
+                    print(e)
+                    print('download error')
             if t1 < now_t2 <= t2:
                 break
-    reorder(outdir2, remove_dup(outdir2))
 
 
 def download_one(s):
@@ -190,138 +189,155 @@ if __name__ == "__main__":
     outdir = r'E:\hzw\DouYin'
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
-    download_one("https://v.douyin.com/RhnwkwN/")
-    download_one("https://v.douyin.com/RhW2j6g/")
-    download_one("https://v.douyin.com/RhWjYvW/")
-    download_one("https://v.douyin.com/RhW1MSY/")
-    download_one("https://v.douyin.com/RhWdXaN/")
-    download_one("https://v.douyin.com/Rh7Ab8R/")
-    download_one("https://v.douyin.com/Rh765QE/")
-    download_one("https://v.douyin.com/Rh7uy2P/")
-    download_one("https://v.douyin.com/Rh74BWN/")
-    download_one("https://v.douyin.com/Rh7yvqV/")
-    download_one("https://v.douyin.com/Rh7ySdt/")
-    download_one("https://v.douyin.com/Rh7MBUW/")
-    download_one("https://v.douyin.com/Rh7jG5r/")
-    download_one("https://v.douyin.com/Rh7nAw3/")
-    download_one("https://v.douyin.com/Rh7vTt3/")
-    download_one("https://v.douyin.com/Rh7wKqU/")
-    download_one("https://v.douyin.com/Rh7GVRj/")
-    download_one("https://v.douyin.com/Rhv1pUt/")
-    download_one("https://v.douyin.com/Rh7TQQY/")
-    download_one("https://v.douyin.com/Rh7tWfR/")
-    download_one("https://v.douyin.com/Rh7GN8h/")
-    download_one("https://v.douyin.com/Rh7EGmE/")
-    download_one("https://v.douyin.com/Rh7gUvQ/")
-    download_one("https://v.douyin.com/Rh7nt9r/")
-    download_one("https://v.douyin.com/Rhvechf/")
-    download_one("https://v.douyin.com/RhvdaSW/")
-    download_one("https://v.douyin.com/Rh77Pvp/")
-    download_one("https://v.douyin.com/Rh7G7kx/")
-    download_one("https://v.douyin.com/Rh7KFcx/")
-    download_one("https://v.douyin.com/Rh7GFw8/")
-    download_one("https://v.douyin.com/RBKfm4E/")
-    download_one("https://v.douyin.com/RBKA3Ge/")
-    download_one("https://v.douyin.com/RBK2nXK/")
-    download_one("https://v.douyin.com/RBKB9B6/")
-    download_one("https://v.douyin.com/RBKAGM9/")
-    download_one("https://v.douyin.com/RBKCK6J/")
-    download_one("https://v.douyin.com/RBK2Ltf/")
-    download_one("https://v.douyin.com/RBKpvpe/")
-    download_one("https://v.douyin.com/RBKVD6q/")
-    download_one("https://v.douyin.com/RBKnYsM/")
-    download_one("https://v.douyin.com/RBKv3xb/")
-    download_one("https://v.douyin.com/RBKGYXP/")
-    download_one("https://v.douyin.com/RBK7xeo/")
-    download_one("https://v.douyin.com/RBKWwjp/")
-    download_one("https://v.douyin.com/RBE1HVY/")
-    download_one("https://v.douyin.com/RBKt2p6/")
-    download_one("https://v.douyin.com/RBKvnVJ/")
-    download_one("https://v.douyin.com/RBKnWhQ/")
-    download_one("https://v.douyin.com/RBKWPdX/")
-    download_one("https://v.douyin.com/RBKEwqM/")
-    download_one("https://v.douyin.com/RBKwFHu/")
-    download_one("https://v.douyin.com/RBEd9DP/")
-    download_one("https://v.douyin.com/RBEdQSu/")
-    download_one("https://v.douyin.com/RBEkWb5/")
-    download_one("https://v.douyin.com/RBEhBSQ/")
-    download_one("https://v.douyin.com/RBEhD5p/")
-    download_one("https://v.douyin.com/RBE2uJA/")
-    download_one("https://v.douyin.com/RBE6hBe/")
-    download_one("https://v.douyin.com/RBEULcY/")
-    download_one("https://v.douyin.com/RBE5UQy/")
-    download_one("https://v.douyin.com/RBE8jU5/")
-    download_one("https://v.douyin.com/RBEhV6q/")
-    download_one("https://v.douyin.com/RBEH6Kw/")
-    download_one("https://v.douyin.com/RBEaDWY/")
-    download_one("https://v.douyin.com/RBEFWxj/")
-    download_one("https://v.douyin.com/RBEjb9Q/")
-    download_one("https://v.douyin.com/RBE8KPo/")
-    download_one("https://v.douyin.com/RBENLvA/")
-    download_one("https://v.douyin.com/RBESPcM/")
-    download_one("https://v.douyin.com/RBEmbNf/")
-    download_one("https://v.douyin.com/RBEmxL3/")
-    download_one("https://v.douyin.com/RBE85aE/")
-    download_one("https://v.douyin.com/RBEyuRW/")
-    download_one("https://v.douyin.com/RBE4vXr/")
-    download_one("https://v.douyin.com/RBE4CJj/")
-    download_one("https://v.douyin.com/RBET8HL/")
-    download_one("https://v.douyin.com/RBE9xXq/")
-    download_one("https://v.douyin.com/RBEq3GS/")
-    download_one("https://v.douyin.com/RBE4S8k/")
-    download_one("https://v.douyin.com/RBEEvE8/")
-    download_one("https://v.douyin.com/RBEGeek/")
-    download_one("https://v.douyin.com/RBEsxgN/")
-    download_one("https://v.douyin.com/RBEsF3Q/")
-    download_one("https://v.douyin.com/RBEp8jK/")
-    download_one("https://v.douyin.com/RBEgng4/")
-    download_one("https://v.douyin.com/RBEvLK7/")
-    download_one("https://v.douyin.com/RBEWW7t/")
-    download_one("https://v.douyin.com/RBE4kfx/")
-    download_one("https://v.douyin.com/RBE7us1/")
-    download_one("https://v.douyin.com/RBEptSn/")
-    download_one("https://v.douyin.com/RBEvKtY/")
-    download_one("https://v.douyin.com/RBEELEf/")
-    download_one("https://v.douyin.com/RBE7FXw/")
-    download_one("https://v.douyin.com/RU235da/")
-    download_one("https://v.douyin.com/RU2bFHG/")
-    download_one("https://v.douyin.com/RU2CHbY/")
-    download_one("https://v.douyin.com/RU2GUJ8/")
-    download_one("https://v.douyin.com/RU2GEqU/")
-    download_one("https://v.douyin.com/RU2HYqn/")
-    download_one("https://v.douyin.com/RU2HTsf/")
-    download_one("https://v.douyin.com/RU2QnS5/")
-    download_one("https://v.douyin.com/RU2xjkx/")
-    download_one("https://v.douyin.com/RU2p2yx/")
-    download_one("https://v.douyin.com/RU2npsc/")
-    download_one("https://v.douyin.com/RU24F19/")
-    download_one("https://v.douyin.com/RU2aEm4/")
-    download_one("https://v.douyin.com/RU2HoUg/")
-    download_one("https://v.douyin.com/RU2bRWT/")
-    download_one("https://v.douyin.com/RU2TpPH/")
-    download_one("https://v.douyin.com/RU2ngN8/")
-    download_one("https://v.douyin.com/RU2ghLf/")
-    download_one("https://v.douyin.com/RU24noy/")
-    download_one("https://v.douyin.com/RU2vV1V/")
-    download_one("https://v.douyin.com/RU29Pwe/")
-    download_one("https://v.douyin.com/RU2Xa7f/")
-    download_one("https://v.douyin.com/RU2tbRS/")
-    download_one("https://v.douyin.com/RU2GTKH/")
-    download_one("https://v.douyin.com/RU2chuL/")
-    download_one("https://v.douyin.com/RU2GcFj/")
-    download_one("https://v.douyin.com/RU2C8ev/")
-    download_one("https://v.douyin.com/RU2sSro/")
-    download_one("https://v.douyin.com/RU2cg3m/")
-    download_one("https://v.douyin.com/RU2uXXE/")
-    download_one("https://v.douyin.com/RU2vcer/")
-    download_one("https://v.douyin.com/RU2pGJu/")
-    download_one("https://v.douyin.com/RU2afF1/")
-    download_one("https://v.douyin.com/RU2smNa/")
-    download_one("https://v.douyin.com/RU2C9mw/")
-    download_one("https://v.douyin.com/RU2VyQw/")
-    download_one("https://v.douyin.com/RU2anj9/")
-    download_one("https://v.douyin.com/RU2GbML/")
-    download_one("https://v.douyin.com/RU2qPfB/")
-    download_one("https://v.douyin.com/RU2bpoC/")
-    download_one("https://v.douyin.com/RU2H3HL/")
-    download_one("https://v.douyin.com/RU2Xmeb/")
+    shorturls = [
+    'RhnwkwN',
+    'RhW2j6g',
+    'RhWjYvW',
+    'RhW1MSY',
+    'RhWdXaN',
+    'Rh7Ab8R',
+    'Rh765QE',
+    'Rh7uy2P',
+    'Rh74BWN',
+    'Rh7yvqV',
+    'Rh7ySdt',
+    'Rh7MBUW',
+    'Rh7jG5r',
+    'Rh7nAw3',
+    'Rh7vTt3',
+    'Rh7wKqU',
+    'Rh7GVRj',
+    'Rhv1pUt',
+    'Rh7TQQY',
+    'Rh7tWfR',
+    'Rh7GN8h',
+    'Rh7EGmE',
+    'Rh7gUvQ',
+    'Rh7nt9r',
+    'Rhvechf',
+    'RhvdaSW',
+    'Rh77Pvp',
+    'Rh7G7kx',
+    'Rh7KFcx',
+    'Rh7GFw8',
+    'RBKfm4E',
+    'RBKA3Ge',
+    'RBK2nXK',
+    'RBKB9B6',
+    'RBKAGM9',
+    'RBKCK6J',
+    'RBK2Ltf',
+    'RBKpvpe',
+    'RBKVD6q',
+    'RBKnYsM',
+    'RBKv3xb',
+    'RBKGYXP',
+    'RBK7xeo',
+    'RBKWwjp',
+    'RBE1HVY',
+    'RBKt2p6',
+    'RBKvnVJ',
+    'RBKnWhQ',
+    'RBKWPdX',
+    'RBKEwqM',
+    'RBKwFHu',
+    'RBEd9DP',
+    'RBEdQSu',
+    'RBEkWb5',
+    'RBEhBSQ',
+    'RBEhD5p',
+    'RBE2uJA',
+    'RBE6hBe',
+    'RBEULcY',
+    'RBE5UQy',
+    'RBE8jU5',
+    'RBEhV6q',
+    'RBEH6Kw',
+    'RBEaDWY',
+    'RBEFWxj',
+    'RBEjb9Q',
+    'RBE8KPo',
+    'RBENLvA',
+    'RBESPcM',
+    'RBEmbNf',
+    'RBEmxL3',
+    'RBE85aE',
+    'RBEyuRW',
+    'RBE4vXr',
+    'RBE4CJj',
+    'RBET8HL',
+    'RBE9xXq',
+    'RBEq3GS',
+    'RBE4S8k',
+    'RBEEvE8',
+    'RBEGeek',
+    'RBEsxgN',
+    'RBEsF3Q',
+    'RBEp8jK',
+    'RBEgng4',
+    'RBEvLK7',
+    'RBEWW7t',
+    'RBE4kfx',
+    'RBE7us1',
+    'RBEptSn',
+    'RBEvKtY',
+    'RBEELEf',
+    'RBE7FXw',
+    'RU235da',
+    'RU2bFHG',
+    'RU2CHbY',
+    'RU2GUJ8',
+    'RU2GEqU',
+    'RU2HYqn',
+    'RU2HTsf',
+    'RU2QnS5',
+    'RU2xjkx',
+    'RU2p2yx',
+    'RU2npsc',
+    'RU24F19',
+    'RU2aEm4',
+    'RU2HoUg',
+    'RU2bRWT',
+    'RU2TpPH',
+    'RU2ngN8',
+    'RU2ghLf',
+    'RU24noy',
+    'RU2vV1V',
+    'RU29Pwe',
+    'RU2Xa7f',
+    'RU2tbRS',
+    'RU2GTKH',
+    'RU2chuL',
+    'RU2GcFj',
+    'RU2C8ev',
+    'RU2sSro',
+    'RU2cg3m',
+    'RU2uXXE',
+    'RU2vcer',
+    'RU2pGJu',
+    'RU2afF1',
+    'RU2smNa',
+    'RU2C9mw',
+    'RU2VyQw',
+    'RU2anj9',
+    'RU2GbML',
+    'RU2qPfB',
+    'RU2bpoC',
+    'RU2H3HL',
+    'RU2Xmeb',
+    'RyBgY7e',
+    'RyB9gNG',
+    'RyBtGVJ',
+    'RyBtGVJ',
+    'RyBAG3r',
+    'RyBAG7w',
+    'RyBG1SP',
+    'RyBU9yB',
+    'RyBaoCY',
+    'RyByhFm',
+    'RyBpBha',
+    'RyBm48U',
+    ]
+    shorturls2 = set(shorturls)
+    for shorturl in shorturls2:
+        download_one('https://v.douyin.com/%s/' % shorturl)
