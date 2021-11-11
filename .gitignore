@@ -108,8 +108,10 @@ venv.bak/
 *.log
 *.m3u8
 *.pdf
-tmp/
-Conf/
+tmp/*
+!tmp/SomeUsefulInfo
+!tmp/replace_print
+Conf/*
+!Conf/logging.json
 PdfOut/
 Logs/
-/*.json

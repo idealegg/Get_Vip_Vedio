@@ -11,28 +11,27 @@ from Util.myLogging import *
 import Util.MergeF4v
 
 
-default_conf = {
-  'base_dir': r'C:\store',
-  'check_downloaded_retry': 3,
-  'session_number': 4,
-  'threading_num': 8,
-  'wait_session_sleep_time': 0.5,
-  'sen_field_name': ['sen', 'name', 'url', 'key'],
-  'headers': {},
-  'sen_info_path': os.path.join(conf_dir, 'sens_info.txt'),
-  'request_timeout': 10.0,
-  'request_retry': 10,
-  'skip_request_error': False,
-  'download_timeout': 60.0,
-  'append_url_before': True,
-  'remove_ts': True,
-}
-
-
 class GetSensBase(threading.Thread):
   """Thread class with a stop() method. The thread itself has to check
   regularly for the stopped() condition."""
+  default_conf = {
+    'base_dir': r'C:\store',
+    'check_downloaded_retry': 3,
+    'session_number': 4,
+    'threading_num': 8,
+    'wait_session_sleep_time': 0.5,
+    'sen_field_name': ['sen', 'name', 'url', 'key'],
+    'headers': {},
+    'sen_info_path': os.path.join(conf_dir, 'sens_info.txt'),
+    'request_timeout': 10.0,
+    'request_retry': 10,
+    'skip_request_error': False,
+    'download_timeout': 60.0,
+    'append_url_before': True,
+    'remove_ts': True,
+  }
   conf = default_conf
+  base_dir = ''
   store_dir = ''
   target_dir = ''
   sen_list = []
@@ -47,6 +46,7 @@ class GetSensBase(threading.Thread):
     super(GetSensBase, self).__init__()
     self._stop_event = threading.Event()
     GetSensBase.conf.update(conf)
+    GetSensBase.base_dir = self.conf['base_dir']
     GetSensBase.store_dir = os.path.join(self.conf['base_dir'], 'store')
     GetSensBase.target_dir = os.path.join(self.conf['base_dir'], 'merge')
     self.sen = None
@@ -462,7 +462,7 @@ if __name__ == "__main__":
                          'threading_num': 8,
                          'wait_session_sleep_time': 0.1,
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url', 'key'],
-                         'sen_info_path': 'sens_info_cctv.txt',
+                         'sen_info_path': os.path.join(conf_dir, 'sens_info_cctv.txt'),
                          'remove_ts': True,
                          })
   th.start()
