@@ -6,7 +6,7 @@ import logging
 import pdfkit
 import requests
 from bs4 import BeautifulSoup
-from PyPDF2 import PdfFileMerger
+from PyPDF2 import PdfFileReader, PdfFileWriter
 import psutil
 
 
@@ -85,7 +85,12 @@ def get_url_list(url):
     print(menu_tag)
     urls = []
     for li in menu_tag.find_all("a"):
-        url = ("http://www.liaoxuefeng.com" + li.get('href'), li.text.strip())
+        level = 0
+        it = li
+        while it.parent != menu_tag:
+            level += 1
+            it = it.parent
+        url = ("http://www.liaoxuefeng.com" + li.get('href'), li.text.strip(), level)
         urls.append(url)
     return urls
 
@@ -114,6 +119,8 @@ def save_pdf(htmls, file_name):
             ('cookie-name2', 'cookie-value2'),
         ],
         'outline-depth': 10,
+        'dpi': 600,
+        'image-dpi': 1200,
     }
     try:
         pdfkit.from_file(htmls, file_name, options=options, configuration=confg)
@@ -133,30 +140,48 @@ def main(iurl, file_name):
         pdfs.append(file_name+str(i)+'.pdf')
         save_pdf(str(i)+'.html', file_name+str(i)+'.pdf')
         print (u"转换完成第"+str(i)+'个html')
-    merger = PdfFileMerger()
-    for i, pdf in enumerate(pdfs):
-        with open(pdf, 'rb') as fpdf:
-            merger.append(fpdf, bookmark=urls[i][1]) # 这里会占用pdf文件导致删除失败
-            print (u"合并完成第"+str(i)+'个pdf'+pdf)
-    with open(u"%s.pdf" % file_name, "wb") as output:
-        merger.write(output)
+    output = PdfFileWriter()
+    opdfs = []
+    begin_page = 0
+    parents = []
+    to_add_labels = []
+    for i in range(len(urls)):
+        pdf = file_name+str(i)+'.pdf'
+        if urls[i][0] is not None:
+            opdfs.append(open(pdf, 'rb'))
+            opdf = PdfFileReader(opdfs[-1])
+            for p in range(opdf.getNumPages()):
+                output.addPage(opdf.getPage(p))
+            while len(to_add_labels):
+                to_add_label = to_add_labels.pop(0)
+                while len(parents) and to_add_label[1] <= parents[-1][1]:
+                    parents.pop()
+                parents.append((output.addBookmark(to_add_label[0], begin_page, parents[-1][0] if len(parents) else None),
+                                to_add_label[1]))
+            while len(parents) and urls[i][2] <= parents[-1][1]:
+                parents.pop()
+            parents.append((output.addBookmark(urls[i][1], begin_page, parents[-1][0] if len(parents) else None), urls[i][2]))
+            begin_page = output.getNumPages()
+        else:
+            to_add_labels.append((urls[i][1], urls[i][2]))
+        print (u"合并完成第"+str(i)+'个pdf'+pdf)
+    outpdf = open(u'%s.pdf' % file_name, 'wb')
+    output.write(outpdf)
+    outpdf.close()
+    for f in opdfs:
+        f.close()
+        os.unlink(f.name)
     print (u"输出PDF成功！")
     for html in htmls:
         os.remove(html)
         print (u"删除临时文件"+html)
-    for pdf in pdfs:
-        try:
-            os.remove(pdf)
-        except Exception as e:
-            #psutil.Process(os.getpid()).open_files()
-            print(e)
-        print (u"删除临时文件"+pdf)
     total_time = time.time() - start
     print(u"总共耗时：%f 秒" % total_time)
 
 
 if __name__ == '__main__':
-    #main('https://www.liaoxuefeng.com/wiki/1016959663602400', u'Python教程')
-    main('https://www.liaoxuefeng.com/wiki/1252599548343744', u'Java教程')
-    main('https://www.liaoxuefeng.com/wiki/1022910821149312', u'JavaScript教程')
-    main('https://www.liaoxuefeng.com/wiki/896043488029600', u'Git教程')
+    #main('https://www.liaoxuefeng.com/wiki/896043488029600', u'廖雪峰Git教程')
+    main('https://www.liaoxuefeng.com/wiki/1016959663602400', u'廖雪峰Python教程')
+    main('https://www.liaoxuefeng.com/wiki/1252599548343744', u'廖雪峰Java教程')
+    main('https://www.liaoxuefeng.com/wiki/1022910821149312', u'廖雪峰JavaScript教程')
+

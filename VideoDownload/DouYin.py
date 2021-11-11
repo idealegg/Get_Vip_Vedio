@@ -6,6 +6,7 @@ import time
 import re
 import string
 import hashlib
+import pprint
 
 
 """
@@ -23,13 +24,15 @@ headers = {
 }
 
 
-def get_good_name(s, to_replace=True):
+def get_good_name(s, get_file=True):
     replace_char = '-'
     res = []
+    if not get_file:
+        s = s[:max(min(s.find('('), s.find('（')), 0)]
     for ch in s:
             if u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62]+'_-.':
                 res.append(ch)
-            elif to_replace and res and res[-1] != replace_char:
+            elif get_file and res and res[-1] != replace_char:
                 res.append(replace_char)
     return ''.join(res).strip('_-')
 
@@ -97,8 +100,14 @@ def download_one2(string):
     userinfo = json.loads(getname)
     print(userinfo)
     name = userinfo['user_info']['nickname']
+    print(name)
     name = get_good_name(name, False)
     print(name)
+    all_dir = os.listdir(outdir)
+    may_be_dir = list(filter(lambda x: x.startswith(name), all_dir))
+    if len(may_be_dir):
+        pprint.pprint(may_be_dir)
+        name = may_be_dir[0]
     outdir2 = os.path.join(outdir, name)
     last_time = int(time.mktime(time.strptime(year[0] + '-' + month[0] + '-01 00:00:00', "%Y-%m-%d %H:%M:%S")) * 1000)
     vn = 0
@@ -165,6 +174,8 @@ def download_one2(string):
                                 with open(vfile, 'wb') as v:
                                     v.write(req2.content)
                                 md5s[md5] = vf
+                            else:
+                                print("skip same file [%s][%s]"%(md5s[md5], md5))
                 except Exception as e:
                     print(e)
                     print('download error')
@@ -190,6 +201,26 @@ if __name__ == "__main__":
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     shorturls = [
+    "RfesPp3",
+    "Rfd2n3x",
+    "RfdFLTv",
+    "RfdtdVk",
+    "RfRJQ5U",
+    "RfRJqm1",
+    "RfdwbdX",
+    "Rfd3sSV",
+    "RfdpAde",
+    "Rfdq5L1",
+    "RfdqWKa",
+    "RfdvCLX",
+    "RfdVYro",
+    "RfdCSDk",
+    "RfdWdAe",
+    "RfRJcX8",
+    "Rfd4M7N",
+    "RfReCE6",
+    "RfdnUVS",
+    "RfRSRMr",
     'RhnwkwN',
     'RhW2j6g',
     'RhWjYvW',
