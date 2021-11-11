@@ -7,7 +7,8 @@ import pdfkit
 import requests
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
-import psutil
+#import psutil
+from Util.myLogging import *
 
 
 # wkhtmltopdf --enable-local-file-access -B 30 -T 30 --footer-html footer.html --footer-right [page] --header-html header.html --footer-spacing 10 --header-spacing 10 cover https://www.baidu.com toc --toc-header-text "目录" --disable-dotted-lines --toc-text-size-shrink 1 xxxx.html xxxx.pdf
@@ -45,7 +46,7 @@ headers = {
 def parse_url_to_html(url, name, prefix):
     try:
         response = requests.get(url)
-        print("%s %s" % (response, url))
+        logger.info("%s %s" % (response, url))
         soup = BeautifulSoup(response.content, 'html.parser')
         container = soup.find(class_="main-container font0")
         body = soup.find('body')
@@ -75,7 +76,7 @@ def get_url_list(url, prefix):
                             headers=headers)
     soup = BeautifulSoup(response.content, "html.parser")
     menu_tag = soup.find_all(class_="dd-list")[0]
-    print(menu_tag)
+    logger.info(menu_tag)
     urls = []
     for li in menu_tag.find_all('a'):
         level = 0
@@ -88,7 +89,7 @@ def get_url_list(url, prefix):
         else:
             url = (None, li.text.strip(), level)
         urls.append(url)
-        print("%*d %s" % (level, level, li))
+        logger.info("%*d %s" % (level, level, li))
     return urls
 
 
@@ -103,11 +104,11 @@ def save_pdf(htmls, file_name):
     try:
         pdfkit.from_file(htmls, file_name, options=options, configuration=confg)
     except OSError as ose:
-        print(ose)
+        logger.info(ose)
 
 
 def save_pdf2(htmls, file_name):
-    print(htmls)
+    logger.info(htmls)
     confg = pdfkit.configuration(wkhtmltopdf=r'E:\wkhtmltopdf\bin\wkhtmltopdf.exe')
     options = {
         'enable-local-file-access': None,
@@ -121,7 +122,7 @@ def save_pdf2(htmls, file_name):
     try:
         pdfkit.from_url(htmls, file_name, options=options, configuration=confg)
     except OSError as ose:
-        print(ose)
+        logger.info(ose)
 
 
 def main(iurl, file_name, prefix):
@@ -130,7 +131,7 @@ def main(iurl, file_name, prefix):
     for i in range(len(urls)):
         if urls[i][0] is not None:
             save_pdf2(urls[i][0], file_name + str(i) + '.pdf')
-            print (u"转换完成第"+str(i)+'个html')
+            logger.info(u"转换完成第"+str(i)+'个html')
     output = PdfFileWriter()
     opdfs = []
     begin_page = 0
@@ -156,20 +157,20 @@ def main(iurl, file_name, prefix):
             begin_page = output.getNumPages()
         else:
             to_add_labels.append((urls[i][1], urls[i][2]))
-        print (u"合并完成第"+str(i)+'个pdf'+pdf)
+        logger.info(u"合并完成第"+str(i)+'个pdf'+pdf)
     outpdf = open(u'%s.pdf' % file_name, 'wb')
     output.write(outpdf)
     outpdf.close()
     for f in opdfs:
         f.close()
         os.unlink(f.name)
-    print (u"输出PDF成功！")
+    logger.info(u"输出PDF成功！")
     total_time = time.time() - start
-    print(u"总共耗时：%f 秒" % total_time)
+    logger.info(u"总共耗时：%f 秒" % total_time)
 
 
 if __name__ == '__main__':
-    #main('https://www.liaoxuefeng.com/wiki/1016959663602400', u'Python教程')
+    setup_logging()
     #main('https://www.w3cschool.cn/android/', u'Android教程', u'https://www.w3cschool.cn')
     #main('https://www.w3cschool.cn/uawnhh/', u'Android基础入门教程', u'https://www.w3cschool.cn')
     main('https://www.w3cschool.cn/android_sdk/', u'Android SDK 上手指南', u'https://www.w3cschool.cn')
@@ -179,5 +180,3 @@ if __name__ == '__main__':
     main('https://www.w3cschool.cn/pbqxiq/', u'Android最佳实践', u'https://www.w3cschool.cn')
     main('https://www.w3cschool.cn/csharp/', u'C# 教程', u'https://www.w3cschool.cn')
     main('https://www.w3cschool.cn/wkcsharp/', u'C# 入门手册', u'https://www.w3cschool.cn')
-    #main('https://www.liaoxuefeng.com/wiki/1022910821149312', u'JavaScript教程')
-    #main('https://www.liaoxuefeng.com/wiki/896043488029600', u'Git教程')

@@ -7,7 +7,8 @@ import pdfkit
 import requests
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
-import psutil
+#import psutil
+from Util.myLogging import *
 
 
 # wkhtmltopdf --enable-local-file-access -B 30 -T 30 --footer-html footer.html --footer-right [page] --header-html header.html --footer-spacing 10 --header-spacing 10 cover https://www.baidu.com toc --toc-header-text "目录" --disable-dotted-lines --toc-text-size-shrink 1 xxxx.html xxxx.pdf
@@ -37,7 +38,7 @@ def parse_url_to_html(url, name):
     """
     try:
         response = requests.get(url, headers=headers)
-        print("%s %s" % (response, url))
+        logger.info("%s %s" % (response, url))
         soup = BeautifulSoup(response.content, 'html.parser')
         # 正文
         body = soup.find_all(class_="x-wiki-content")[0]
@@ -82,7 +83,7 @@ def get_url_list(url):
                             headers=headers)
     soup = BeautifulSoup(response.content, "html.parser")
     menu_tag = soup.find_all(class_="uk-nav uk-nav-side")[1]
-    print(menu_tag)
+    logger.info(menu_tag)
     urls = []
     for li in menu_tag.find_all("a"):
         level = 0
@@ -125,7 +126,7 @@ def save_pdf(htmls, file_name):
     try:
         pdfkit.from_file(htmls, file_name, options=options, configuration=confg)
     except OSError as ose:
-        print(ose)
+        logger.info(ose)
 
 
 def main(iurl, file_name):
@@ -139,7 +140,7 @@ def main(iurl, file_name):
         htmls.append(str(i)+'.html')
         pdfs.append(file_name+str(i)+'.pdf')
         save_pdf(str(i)+'.html', file_name+str(i)+'.pdf')
-        print (u"转换完成第"+str(i)+'个html')
+        logger.info(u"转换完成第"+str(i)+'个html')
     output = PdfFileWriter()
     opdfs = []
     begin_page = 0
@@ -164,22 +165,23 @@ def main(iurl, file_name):
             begin_page = output.getNumPages()
         else:
             to_add_labels.append((urls[i][1], urls[i][2]))
-        print (u"合并完成第"+str(i)+'个pdf'+pdf)
+        logger.info(u"合并完成第"+str(i)+'个pdf'+pdf)
     outpdf = open(u'%s.pdf' % file_name, 'wb')
     output.write(outpdf)
     outpdf.close()
     for f in opdfs:
         f.close()
         os.unlink(f.name)
-    print (u"输出PDF成功！")
+    logger.info(u"输出PDF成功！")
     for html in htmls:
         os.remove(html)
-        print (u"删除临时文件"+html)
+        logger.info(u"删除临时文件"+html)
     total_time = time.time() - start
-    print(u"总共耗时：%f 秒" % total_time)
+    logger.info(u"总共耗时：%f 秒" % total_time)
 
 
 if __name__ == '__main__':
+    setup_logging()
     #main('https://www.liaoxuefeng.com/wiki/896043488029600', u'廖雪峰Git教程')
     main('https://www.liaoxuefeng.com/wiki/1016959663602400', u'廖雪峰Python教程')
     main('https://www.liaoxuefeng.com/wiki/1252599548343744', u'廖雪峰Java教程')

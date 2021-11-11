@@ -1,11 +1,7 @@
 # -*- coding:utf-8 -*-
 import requests
-import os
-import sys
-import json
 import re
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse, parse_qsl
+from Util.myLogging import *
 
 
 # npm install crypto-js
@@ -40,14 +36,14 @@ def get_a_m4a(id, name, outdir, trackUrl, ptype=1):
     url = 'https://www.ximalaya.com/revision/play/v1/audio'
     header_dict["Referer"] = 'https://www.ximalaya.com%s'% trackUrl
     with requests.get(url=url, params=textmod, headers=header_dict) as req:
-        print("get_a_m4a [%s] return code: %d" % (id, req.status_code))
+        logger.info("get_a_m4a [%s] return code: %d" % (id, req.status_code))
         if req.status_code == 200:
-            print(req.content)
+            logger.info(req.content)
             j = json.loads(req.content)
             if 'ret' in j and j['ret'] == 200:
                 mp3_url = j['data']['src']
                 with requests.get(url=mp3_url) as req2:
-                    print("to download m4a [%s] return code: %d" % (id, req2.status_code))
+                    logger.info("to download m4a [%s] return code: %d" % (id, req2.status_code))
                     if req2.status_code == 200:
                         with open(os.path.join(outdir, name), 'wb') as fd:
                             fd.write(req2.content)
@@ -68,22 +64,22 @@ def get_a_mp3(id, name, outdir):
     url = 'https://mobile.ximalaya.com/mobile-playpage/track/v3/baseInfo/1634643489023'
     header_dict["Referer"] = 'https://www.ximalaya.com/'
     with requests.get(url=url, params=textmod, headers=header_dict) as req:
-        print("get_a_mp3 [%s] return code: %d" % (id, req.status_code))
+        logger.info("get_a_mp3 [%s] return code: %d" % (id, req.status_code))
         if req.status_code == 200:
-            print(req.content)
+            logger.info(req.content)
             j = json.loads(req.content)
             req.close()
             if 'ret' in j and j['ret'] == 0:
                 mp3 = list(filter(lambda x: x['type'] == 'MP3_64', j['trackInfo']['playUrlList']))[0]
                 mp3_url = decode_url(mp3['url'])
-                print("url: [%s]" % mp3_url)
+                logger.info("url: [%s]" % mp3_url)
                 with requests.get(mp3_url) as req2:
-                    print("to download mp3 [%s] return code: %d" % (id, req2.status_code))
+                    logger.info("to download mp3 [%s] return code: %d" % (id, req2.status_code))
                     if req2.status_code == 200:
                         with open(os.path.join(outdir, "%s.mp3" % name), 'wb') as fd:
                             fd.write(req2.content)
                     else:
-                        print(req2.content)
+                        logger.info(req2.content)
 
 
 def get_an_album(aid, outdir, num):
@@ -102,9 +98,9 @@ def get_an_album(aid, outdir, num):
         textmod = {"id": aid, 'num': num, 'sort': -1, 'size': 30, 'ptype': 0}
         url = 'https://www.ximalaya.com/revision/play/v1/show'
         with requests.get(url=url, params=textmod, headers=header_dict) as req:
-            print("get_an_album [%s] return code: %d" % (aid, req.status_code))
+            logger.info("get_an_album [%s] return code: %d" % (aid, req.status_code))
             if req.status_code == 200:
-                print(req.content)
+                logger.info(req.content)
                 j = json.loads(req.content)
     if j:
         if 'ret' in j and j['ret'] == 200:
@@ -131,6 +127,7 @@ def get_an_album(aid, outdir, num):
 
 
 if __name__ == "__main__":
+    setup_logging()
     outdir = r'I:\temp\xx\XiMaLaYa'
     if not os.path.isdir(outdir):
         os.mkdir(outdir)

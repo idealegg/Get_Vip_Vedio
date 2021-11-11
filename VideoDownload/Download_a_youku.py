@@ -1,13 +1,11 @@
 # -*- coding:utf-8 -*-
-import os, requests
-import RedirectOut.RedirectOut
-import time
-import json
-import re
-from GetSensBase.GetSensBase import GetSensBase
-from hashlib import md5
 import pprint
-import random
+import re
+import requests
+import time
+from hashlib import md5
+from Util.myLogging import *
+from Common.GetSensBase import GetSensBase
 
 
 #ffmpeg -i http://www.xxx.com/xxx.m3u8 name.mp4
@@ -29,11 +27,11 @@ YK_API = "mtop.youku.play.ups.appinfo.get"
 def check_key(con, uri_dir):
   res = re.search(KEY_PATTERN, con)
   if res:
-    print "Encrypt method: %s, Key uri: %s\n" % (res.group(1), res.group(2))
+    logger.info("Encrypt method: %s, Key uri: %s\n" % (res.group(1), res.group(2)))
     url = "%s%s" % (uri_dir, res.group(2))
-    print "URL: %s\n" % url
+    logger.info("URL: %s\n" % url)
     req = requests.get(url)
-    print "req: %s" % req.content
+    logger.info("req: %s" % req.content)
     ret = req.content
     req.close()
     return ret
@@ -105,7 +103,7 @@ def generate_url(gsb, url, c_time):
 
 
 def generate_youku_file(gsb, i=0, force=False, read_json=False):
-  print "To generate a youku file:\n"
+  logger.info("To generate a youku file:\n")
   if not read_json:
     c_time = str(int(time.time() * 1000))
     #c_time = "1618467677079"
@@ -113,14 +111,14 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
       get_cookie(gsb, c_time)
     params, headers = generate_url(gsb, gsb.conf['src_url'][i], c_time)
     req = gsb.get_req(YK_URL, params=params, headers=headers)
-    print "req: %s" % req
-    print "req.content: %s" % req.content
+    logger.info("req: %s" % req)
+    logger.info("req.content: %s" % req.content)
     if req.status_code != 200:
-      print "request failed: %s"
+      logger.info("request failed: %s")
       return  False
     j = json.loads(req.content)
     if not j['ret'][0].startswith('SUCCESS') or "error" in j['data']['data']:
-      print "api call failed!"
+      logger.info("api call failed!")
       return False
     i = gsb.get_base_sen_id()
     jsonf = os.path.join(gsb.store_dir, "%d.json" % i)
@@ -161,8 +159,8 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
       ret = os.system(cmd)
       return ret == 0
     req = gsb.get_req(url)
-    print "url: %s" % url
-    print "req: %s" % req
+    logger.info("url: %s" % url)
+    logger.info("req: %s" % req)
     if req.content.count('.ts'):
       m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
       f_m3u8 = open(m3u8, 'wb')
@@ -173,7 +171,7 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
       for line in req.content.split('\n'):
         if not line.startswith("#"):
           req2 = gsb.get_req(url)
-          print "req2: %s" % req2
+          logger.info("req2: %s" % req2)
           if req2:
             m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
             f_m3u8 = open(m3u8, 'wb')
@@ -191,8 +189,8 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
     f_m3u8.write('\n'.join(segs))
     f_m3u8.close()
     outs.append("%d %s" % (i, name,))
-  print "\n".join(outs).encode('utf8')+"\n"
-  print "outs: %s " % outs
+  logger.info("\n".join(outs).encode('utf8')+"\n")
+  logger.info("outs: %s " % outs)
   f_cctv5 = open(gsb.conf['sen_info_path'], 'a')
   f_cctv5.write("\n".join(outs).encode('utf8')+"\n")
   f_cctv5.close()
@@ -213,6 +211,7 @@ def a():
 
 
 if __name__ == "__main__":
+  setup_logging()
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
   conf={'base_dir': r'E:\hzw',
         'direct_download_m3u8': True,
@@ -221,8 +220,8 @@ if __name__ == "__main__":
                          'threading_num': 6,
                          'wait_session_sleep_time': 0.1,
                          'sen_field_name': ['sen', 'name', 'url', 'key'],
-                         'sen_info_path': 'sens_info_youku.txt',
-                         'youku_info_path': 'youku_sens_info.txt',
+                         'sen_info_path': os.path.join(conf_dir,'sens_info_youku.txt'),
+                         'youku_info_path': os.path.join(conf_dir,'youku_sens_info.txt'),
                          'src_url': [
                             # "http://v.youku.com/v_show/id_XMjMzNDYyNjA0.html",  # 【09dota提高班】顶着延迟加卡的蝴蝶小强 52:25
                            # "http://v.youku.com/v_show/id_XMjM2NDIyMTA4.html",  # yy2009开业活动录音内有09的演讲 01:34:22

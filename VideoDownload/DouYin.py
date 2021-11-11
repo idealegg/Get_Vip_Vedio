@@ -7,6 +7,7 @@ import re
 import string
 import hashlib
 import pprint
+from Util.myLogging import *
 
 
 """
@@ -59,13 +60,13 @@ def remove_dup(d):
                 if st1.st_mtime < st2.st_mtime:
                     del stats[md5s[md5]]
                     os.unlink(os.path.join(d, md5s[md5]))
-                    print("remove [%s] in [%s]" % (md5s[md5], d))
+                    logger.info("remove [%s] in [%s]" % (md5s[md5], d))
                     md5s[md5] = f
                     stats[f] = st1
                 else:
                     fd.close()
                     os.unlink(os.path.join(d, f))
-                    print("remove [%s] in [%s]" % (f, d))
+                    logger.info("remove [%s] in [%s]" % (f, d))
             else:
                 md5s[md5] = f
                 stats[f] = st1
@@ -80,7 +81,7 @@ def reorder(d, stats):
         f2 = "%s_%s" % (i+1, f2)
         if f != f2:
             os.rename(os.path.join(d, f), os.path.join(d, f2))
-            print("rename in [%s]\n%s\n%s" % (d, f, f2))
+            logger.info("rename in [%s]\n%s\n%s" % (d, f, f2))
 
 
 def download_one2(string):
@@ -89,24 +90,25 @@ def download_one2(string):
     year = list(map(lambda yi: "%04d" % yi, range(2018, now_t.tm_year+1)))
     month = list(map(lambda mo: "%02d" % mo, range(1, 13)))
     shroturl = re.findall('[a-z]+://[\S]+', string, re.I | re.M)[0]
-    print(shroturl)
+    logger.info(shroturl)
     startpage = requests.get(url=shroturl, headers=headers, allow_redirects=False)
     location = startpage.headers['location']
-    print(location)
+    logger.info(location)
     sec_uid = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
-    print(sec_uid)
+    logger.info(sec_uid)
     getname = requests.get(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
                            headers=headers).text
     userinfo = json.loads(getname)
-    print(userinfo)
+    logger.info(userinfo)
     name = userinfo['user_info']['nickname']
-    print(name)
+    logger.info(name)
     name = get_good_name(name, False)
-    print(name)
+    logger.info(name)
     all_dir = os.listdir(outdir)
     may_be_dir = list(filter(lambda x: x.startswith(name), all_dir))
     if len(may_be_dir):
-        pprint.pprint(may_be_dir)
+        #pprint.pprint(may_be_dir)
+        logger.info(pprint.pformat(may_be_dir))
         name = may_be_dir[0]
     outdir2 = os.path.join(outdir, name)
     last_time = int(time.mktime(time.strptime(year[0] + '-' + month[0] + '-01 00:00:00', "%Y-%m-%d %H:%M:%S")) * 1000)
@@ -114,17 +116,17 @@ def download_one2(string):
     if not os.path.exists(outdir2):
         os.mkdir(outdir2)
     else:
-        print('directory exist')
+        logger.info('directory exist')
         last_time = get_last_time(outdir2, last_time)
         vn = len(list(filter(lambda x: x.endswith('.mp4'), os.listdir(outdir2))))
     md5s, stats = remove_dup(outdir2)
     timepool = [x + '-' + y + '-01 00:00:00' for x in year for y in month]
-    print(timepool)
+    logger.info(timepool)
     k = len(timepool)
     for i in range(k):
         if i < k - 1:
-            print('begintime=' + timepool[i])
-            print('endtime=' + timepool[i + 1])
+            logger.info('begintime=' + timepool[i])
+            logger.info('endtime=' + timepool[i + 1])
             beginarray = time.strptime(timepool[i], "%Y-%m-%d %H:%M:%S")
             endarray = time.strptime(timepool[i + 1], "%Y-%m-%d %H:%M:%S")
             t1 = int(time.mktime(beginarray) * 1000)
@@ -133,7 +135,7 @@ def download_one2(string):
                 continue
             elif last_time > t1:
                 t1 = last_time
-            print(t1, t2)
+            logger.info(t1, t2)
             params = {
                 'sec_uid': sec_uid,
                 'count': 200,
@@ -144,27 +146,27 @@ def download_one2(string):
             }
             awemeurl = 'https://www.iesdouyin.com/web/api/v2/aweme/post/'
             req = requests.get(url=awemeurl, params=params, headers=headers)
-            print(req)
+            logger.info(req)
             if req.status_code != 200:
                 exit(1)
             data = json.loads(req.content)
-            print(data)
-            # print(type(data))
+            logger.info(data)
+            # logger.info(type(data))
             awemenum = len(data['aweme_list'])
-            print(awemenum)
+            logger.info(awemenum)
             for i in list(range(awemenum))[::-1]:
                 videotitle = data['aweme_list'][i]['desc'].replace("?", "").replace("\"", "").replace(":", "")
                 #videotitle = re.sub('[| ;,:?()*^.]', '-', videotitle)
                 videotitle = get_good_name(videotitle)
                 videourl = data['aweme_list'][i]['video']['play_addr']['url_list'][0]
-                print(videotitle)
-                print(videourl)
+                logger.info(videotitle)
+                logger.info(videourl)
                 #start = time.time()
-                print(shroturl)
-                print(b'%s ===>downloading' % videotitle.encode('utf8'))
+                logger.info(shroturl)
+                logger.info(b'%s ===>downloading' % videotitle.encode('utf8'))
                 try:
                     with requests.get(url=videourl, headers=headers) as req2:
-                        print(req2)
+                        logger.info(req2)
                         if req2.status_code == 200:
                             md5 = hashlib.md5(req2.content).hexdigest()
                             if md5 not in md5s:
@@ -175,10 +177,10 @@ def download_one2(string):
                                     v.write(req2.content)
                                 md5s[md5] = vf
                             else:
-                                print("skip same file [%s][%s]"%(md5s[md5], md5))
+                                logger.info("skip same file [%s][%s]"%(md5s[md5], md5))
                 except Exception as e:
-                    print(e)
-                    print('download error')
+                    logger.info(e)
+                    logger.info('download error')
             if t1 < now_t2 <= t2:
                 break
 
@@ -191,12 +193,13 @@ def download_one(s):
             download_one2(s)
             over = True
         except Exception as e:
-            print(e)
+            logger.info(e)
             time.sleep(t)
             t += 60 * 5
 
 
 if __name__ == "__main__":
+    setup_logging()
     outdir = r'E:\hzw\DouYin'
     if not os.path.isdir(outdir):
         os.mkdir(outdir)

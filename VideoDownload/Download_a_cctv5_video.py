@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
-import os, sys, requests
-import RedirectOut.RedirectOut
-import time
 import json
-from GetSensBase.GetSensBase import GetSensBase
+import os
+import requests
+import time
+from Util.myLogging import *
+from Common.GetSensBase import GetSensBase
 
 
 def generate_a_new_sen(gsb, cctv5_file="cctv5_sens_info.txt"):
@@ -16,21 +17,21 @@ def generate_a_new_sen(gsb, cctv5_file="cctv5_sens_info.txt"):
     for i in target_list:
       if i.startswith("#") or i.startswith("--"):
         continue
-      print i
+      logger.info(i)
       target_url = i.strip()
       req = requests.get(url=target_url)
       j = json.loads(req.content)
       req.close()
-      print j
-      print j['hls_url']
-      print j['title']
+      logger.info(j)
+      logger.info(j['hls_url'])
+      logger.info(j['title'])
       t_host=j['hls_url'][:j['hls_url'].find('/', 7)]
       m3u8_list = requests.get(url=j['hls_url'])
       max_resolution = 0
-      print m3u8_list.content
+      logger.info(m3u8_list.content)
       for line in m3u8_list.content.split("\n"):
         if line and not line.startswith("#"):
-          print line
+          logger.info(line)
           resolution = int(line[line.rfind('/')+1:-5])
           if resolution > max_resolution:
             m3u8_url = line
@@ -47,15 +48,17 @@ def generate_a_new_sen(gsb, cctv5_file="cctv5_sens_info.txt"):
       f_cctv5.write(" ".join(["%d" % s_info['id'], s_info['m3u8'], s_info['title'], s_info['url'], "\n"]).encode('utf8'))
     f_cctv5.close()
 
+
 if __name__ == "__main__":
-  RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
+  setup_logging()
+  #Util.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
   th = GetSensBase(conf={'base_dir': r'C:\store',
                          'check_downloaded_retry': 5,
                          'session_number': 4,
                          'threading_num': 8,
                          'wait_session_sleep_time': 0.1,
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
-                         'sen_info_path': 'sens_info_cctv.txt',
+                         'sen_info_path': os.path.join(conf_dir, 'sens_info_cctv.txt'),
                          })
   th.check_dir()
   th.get_exist_file()

@@ -107,8 +107,9 @@ venv.bak/
 *.ts
 *.log
 *.m3u8
-*.json
-*.txt
+*.pdf
 tmp/
 Conf/
 PdfOut/
+Logs/
+/*.json

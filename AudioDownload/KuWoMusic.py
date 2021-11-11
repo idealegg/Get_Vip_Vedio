@@ -1,19 +1,17 @@
 # -*- coding:utf-8 -*-
 import requests
-import os
-import sys
-import json
 from bs4 import BeautifulSoup
+from Util.myLogging import *
 
 
 def get_ts_reqid():
-    print("To generate a reqid:\n")
+    logger.info("To generate a reqid:\n")
     cmd = '%s %s' % (r'tools\phantomjs.exe',
                         r'js\kuwo_decode.js')
-    print("cmd: %s" % cmd)
+    logger.info("cmd: %s" % cmd)
     f_popen = os.popen(cmd)
     reqid = f_popen.read()
-    print("Return value: %s" % reqid)
+    logger.info("Return value: %s" % reqid)
     f_popen.close()
     return reqid.split()
 
@@ -62,17 +60,17 @@ def get_a_mp3(name, rid, outdir):
                         }
     url = 'http://bd.kuwo.cn/url'
     with requests.get(url=url, params=textmod,  headers=header_dict) as req:
-        print("get_a_mp3 url req return code: %d" % req.status_code)
+        logger.info("get_a_mp3 url req return code: %d" % req.status_code)
         if req.status_code == 200:
             '''{"code": 200, "msg": "success", "url": "https://sy-sycdn.kuwo.cn/7ffbe63701f7a9558dff2746c9d6e1d8/615aabad/resource/n3/21/42/3886230848.mp3"}'''
-            print("response: " + req.content)
+            logger.info("response: " + req.content)
             j = json.loads(req.content)
             with requests.get(j['url']) as req2:
-                print("get mp3 file req2 return code: %d" % req2.status_code)
+                logger.info("get mp3 file req2 return code: %d" % req2.status_code)
                 if req2.status_code == 200:
                     with open(os.path.join(outdir, "%s.mp3" % name), "wb") as fd:
                         fd.write(req2.content)
-                        print("write mp3 [%s] [%s] ok: " % (name, rid))
+                        logger.info("write mp3 [%s] [%s] ok: " % (name, rid))
 
 
 def get_a_mp3_211102(name, rid, outdir, aid, token):
@@ -108,18 +106,18 @@ def get_a_mp3_211102(name, rid, outdir, aid, token):
                    }
     url = 'http://bd.kuwo.cn/api/v1/www/music/playUrl'
     with requests.get(url=url, params=textmod,  headers=header_dict) as req:
-        print("get_a_mp3 url req return code: %d" % req.status_code)
+        logger.info("get_a_mp3 url req return code: %d" % req.status_code)
         if req.status_code == 200:
             '''{"code":200,"msg":"success","reqId":"e04e5e12ff4f141a0ac2f00472070e77","data":{"url":"https://se-sycdn.kuwo.cn/f9275cf321bb58d2951e2ad860d7e865/6180a817/resource/n3/26/94/3116241848.mp3"},"profileId":"site","curTime":1635821592048,"success":true}'''
-            print(b"response: " + req.content)
+            logger.info(b"response: " + req.content)
             j = json.loads(req.content)
-            print("mp3 url: %s" % j['data']['url'])
+            logger.info("mp3 url: %s" % j['data']['url'])
             with requests.get(j['data']['url']) as req2:
-                print("get mp3 file req2 return code: %d" % req2.status_code)
+                logger.info("get mp3 file req2 return code: %d" % req2.status_code)
                 if req2.status_code == 200:
                     with open(os.path.join(outdir, "%s.mp3" % name), "wb") as fd:
                         fd.write(req2.content)
-                        print("write mp3 [%s] [%s] ok: " % (name, rid))
+                        logger.info("write mp3 [%s] [%s] ok: " % (name, rid))
 
 
 def get_a_album(aid, pn):
@@ -164,12 +162,12 @@ def get_a_album(aid, pn):
                         }
     url = 'http://bd.kuwo.cn/api/www/album/albumInfo'
     with requests.get(url=url, params=textmod,  headers=header_dict) as req:
-        print("get_a_album [%s] [%s] return code: %d" % (aid, pn, req.status_code))
+        logger.info("get_a_album [%s] [%s] return code: %d" % (aid, pn, req.status_code))
         if req.status_code == 200:
             '''
             {"code":200,"curTime":1633334092077,"data":{"playCnt":87651820,"artist":"贝乐虎","releaseDate":"2020-10-14","album":"贝乐虎儿歌","albumid":10180760,"pay":0,"artistid":949949,"pic":"https://img1.kuwo.cn/star/albumcover/300/12/39/1395023375.jpg","isstar":1,"total":116,"content_type":"0","albuminfo":"贝乐虎儿歌，由贝乐虎兄弟和小伙伴们生动、欢快的演绎，传达健康、阳光、积极的亲子育儿理念。让小朋友娱乐之余学习家庭礼貌，获得音乐和节奏的熏陶，寓教于乐。","lang":"国语","musicList":[{"musicrid":"MUSIC_79914371","barrage":"0","artist":"贝乐虎","mvpayinfo":{"play":0,"vid":0,"down":0},"pic":"https://img1.kuwo.cn/star/albumcover/500/12/39/1395023375.jpg","isstar":1,"rid":79914371,"duration":83,"score100":"47","content_type":"0","track":61,"hasLossless":false,"hasmv":0,"releaseDate":"2020-10-14","album":"贝乐虎儿歌","albumid":10180760,"pay":"0","artistid":949949,"albumpic":"https://img1.kuwo.cn/star/albumcover/500/12/39/1395023375.jpg","originalsongtype":0,"songTimeMinutes":"01:23","isListenFee":false,"pic120":"https://img1.kuwo.cn/star/albumcover/120/12/39/1395023375.jpg","name":"小星星","online":1,"payInfo":{"
             '''
-            print(b"response: " + req.content)
+            logger.info(b"response: " + req.content)
             j = json.loads(req.content)
             if "code" in j and j['code'] == 200:
                 name = j['data']['album']
@@ -179,20 +177,20 @@ def get_a_album(aid, pn):
                 if not os.path.isdir(album_outdir):
                     os.mkdir(album_outdir)
                 for index, mp3 in enumerate(j['data']['musicList']):
-                    print("To get %s.mp3 [%s/%s] in [%s]:" % (mp3['name'], index+1, len(j['data']['musicList']), name))
+                    logger.info("To get %s.mp3 [%s/%s] in [%s]:" % (mp3['name'], index+1, len(j['data']['musicList']), name))
                     get_a_mp3_211102(mp3['name'], mp3['rid'], album_outdir, aid, token)
 
 
 def parse_a_album(url, name):
     with requests.get(url) as req:
-        print("get_a_album req return code: %d" % req.status_code)
+        logger.info("get_a_album req return code: %d" % req.status_code)
         if req.status_code == 200:
             bs = BeautifulSoup(req.content, "html.parser")
             ns = bs.find_all(attrs={"class": "name"})
             '''<a class="name" data-v-1344465b="" href="/play_detail/70647080" title="Old MacDo
 nald Had a Farm">Old MacDonald Had a Farm</a>'''
             info = map(lambda x: " ".join([x['href'], x['title']]), ns)
-            print(info)
+            logger.info(info)
             with open(os.path.join(outdir, name), "wb") as fd:
                 fd.write("\n".join(info).encode('utf8'))
             for mp3 in ns:
@@ -201,7 +199,7 @@ nald Had a Farm">Old MacDonald Had a Farm</a>'''
 
 def get_pages(aid):
     with requests.get("http://bd.kuwo.cn/album_detail/%s"%aid) as req:
-        print("get_pages req return code: %d" % req.status_code)
+        logger.info("get_pages req return code: %d" % req.status_code)
         if req.status_code == 200:
             bs = BeautifulSoup(req.content, "html.parser")
             ns = bs.find_all('ul', attrs={'class': 'flex_c', 'data-v-1344465b': None})
@@ -211,12 +209,12 @@ def get_pages(aid):
             "><span data-v-9fcc0c74="">3</span></li><li data-v-9fcc0c74=""><span data-v-9fcc
             0c74="">4</span></li></ul>]
             '''
-            print("pages info1: %s" % ns)
+            logger.info("pages info1: %s" % ns)
             if len(ns) == 1:
                 lis = ns[0].find_all('span')
-                print("pages info2: %s" % lis)
+                logger.info("pages info2: %s" % lis)
                 return len(lis)
-    print("pages return default value 1")
+    logger.info("pages return default value 1")
     return 1
 
 
@@ -229,7 +227,7 @@ def get_album():
     for aid in (10180760,):
         pages = get_pages(aid)
         for p in range(pages):
-            print("[Album %s][Page %s/%s]:" % (aid, p+1, pages))
+            logger.info("[Album %s][Page %s/%s]:" % (aid, p+1, pages))
             get_a_album(aid, p+1)
 
 
@@ -245,6 +243,7 @@ def get_file():
 
 
 if __name__ == "__main__":
+    setup_logging()
     outdir = r"I:\temp\xx\child_songs"
     if 1:
         get_file()
