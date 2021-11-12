@@ -1,0 +1,17 @@
+\bprint\s+(".*?")?([^#\n]*)
+
+\bprint\s*\((".*?")?([^#\n]*)\)
+
+logger.info($1$2)
+
+from Util.myLogging import *
+
+
+os.path.join(conf_dir,
+
+setup_logging()
+
+logger.info(pprint.pformat(may_be_dir))
+
+
+^(.*?): (.*?)$   "$1": "$2",

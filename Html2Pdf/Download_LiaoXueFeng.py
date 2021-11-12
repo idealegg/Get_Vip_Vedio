@@ -9,15 +9,13 @@ class LiaoXueFeng(Html2PdfBase):
 
     def replace_body(self, soup):
         container = soup.find_all(class_="x-wiki-content")[0]
+        found = container is not None
         body = soup.find('body')
         body.contents = container
-        return soup
+        return soup, found
 
     def find_menu_container(self, s):
         return s.find_all(class_="uk-nav uk-nav-side")[1]
-
-    def find_all_hrefs(self, container):
-        return container.find_all('a')
 
 
 if __name__ == "__main__":

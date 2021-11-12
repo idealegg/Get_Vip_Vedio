@@ -1,0 +1,124 @@
+1. check_duration
+  for i in `ls -1v *mp4`; do avconv -i $i 2>&1|grep Duration|awk -vi=$i -F':' ' {if($3 < 20){print i}}'; done |tee check_duration.result
+
+2. ffmpeg_merge
+    setpts
+
+    ‘-itsoffset offset (input)’
+    Set the input time offset in seconds. [-]hh:mm:ss[.xxx] syntax is also supported. The offset is added to the timestamps of the input files. Specifying a positive offset means that the corresponding streams are delayed by offset seconds.
+
+    ‘-r[:stream_specifier] fps (input/output,per-stream)’
+    Set frame rate (Hz value, fraction or abbreviation).
+    As an input option, ignore any timestamps stored in the file and instead generate timestamps assuming constant frame rate fps.
+    As an output option, duplicate or drop input frames to achieve constant output frame rate fps (note that this actually causes the fps filter to be inserted to the end of the corresponding filtergraph).
+
+    ‘-copyts’
+    Copy timestamps from input to output.
+
+    ‘-copytb’
+    Copy input stream time base from input to output when stream copying.
+
+    # Start counting the PTS from zero
+    setpts=expr=PTS-STARTPTS
+
+    ffmpeg -i input1.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input1.ts
+    ffmpeg -i input2.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input2.ts
+    ffmpeg -i input3.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input3.ts
+    ffmpeg -i "concat:input1.ts|input2.ts|input3.ts" -c copy -bsf:a aac_adtstoasc -movflags +faststart output.mp4
+3.getcdata_curl_cmd
+    curl 'http://all.baiyug.cn:2021/vip_all/url.php' -H 'Origin: http://all.baiyug.cn:2021' -H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: zh-CN,zh;q=0.9' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Referer: http://all.baiyug.cn:2021/vip_all/index.php?url=http://www.iqiyi.com/v_19rrok5ncc.html?vfm=2008_aldbd' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --data 'id=http%3A%2F%2Fwww.iqiyi.com%2Fv_19rrok5ncc.html%3Fvfm%3D2008_aldbd&type=auto&siteuser=&md5=ab596537258ab5d68e8a9a6bbb87loij&hd=&lg=' --compressed
+4.BaiYuGe
+    http://all.baiyug.cn:2021/vip_all/url.php?xml=http://www.iqiyi.com/v_19rrok5ncc.html?vfm=2008_aldbd&md5=ab596537258ab5d68e8a9a6bbb87loij&type=auto&hd=cq&wap=0&siteuser=&lg=&sohuuid=
+    https://www.iqiyi.com/v_19rrok5ncc.html?vfm=2008_aldbd#curid=385420800_d21f47e93edd284b49fa7f0d6d6df08c
+    https://www.iqiyi.com/v_19rrok5n98.html?vfm=2008_aldbd#curid=385421200_c59c8113438f80d2ae4dab2fdb5e8d5d
+    http://all.baiyug.cn:2021/vip_all/url.php
+    <input type="hidden" id="hdMd5" value="EFBFCB31D5BACE6BB5793A529254424E" />
+        $.post("url.php", {"id": "http://www.iqiyi.com/v_19rrok5n98.html?vfm=2008_aldbd","type": "auto","siteuser": '',"md5": sign($('#hdMd5').val()),"hd":"","lg":""},
+  EFBFCB31D5BACE6BB5793A529254424E
+  ab596537258ab5d68e8a9a6bbb87loij
+  ab59078d678ab5d61639566ac663loij
+  EFBFCB31D5BACE6BB5793A529254424E
+
+  ffcba8bba444f065b18b388402d00e95
+  ffcba8bba444f065b18b388402d00e95
+
+  http://www.iqiyi.com/v_19rrok4igk.html?vfm=2008_aldbd
+5. index_php_curl_cmd
+    curl 'http://all.baiyug.cn:2021/vip_all/index.php?url=http://www.iqiyi.com/v_19rrok775g.html?vfm=2008_aldbd' -H 'Connection: keep-alive' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8' -H 'Referer: http://app.baiyug.cn:2019/vip/iqiyi.php?url=https://www.iqiyi.com/v_19rrok775g.html?vfm=2008_aldbd&type=iqiyi' -H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: zh-CN,zh;q=0.9' --compressed
+6. Max Windows base length
+    >>> fd=os.popen(cmd(8156))
+    >>> fd=os.popen(cmd(8152))
+    >>> fd=os.popen(cmd(8151))
+    >>> os.unlink('1')
+    >>> fd=os.popen(cmd(8152))
+    >>> print len(cmd(8151)
+    ... )
+    8160
+    >>> print len(cmd(8152)
+    ... )
+    8161
+7. check file list
+>>> import os,sys,re
+>>> a=os.listdir('.')
+
+>>> for i in range(78,452):
+...     if a.count("%d\xbc\xaf_0.f4v" %i) != 1:
+...             print i
+8. /works/Get_Vip_Vedio/GetURL3.py
+   G:\Python27\python.exe C:/works/Get_Vip_Vedio/GetURL3.py
+Would click:
+显示全部《航海王》视频及动画篇章
+9. window.write1
+<script>window['\x64\x6f\x63\x75\x6d\x65\x6e\x74']['\x77\x72\x69\x74\x65'](String.fromCharCode.apply(null,'60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з55з49з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з54з57з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з55з48з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з55з50з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з55з56з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з54з54з48з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з56з55з51з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з54з54з49з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з56з55з52з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з55з57з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з56з48з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з56з49з39з62з60з47з115з99з114з105з112з116з62'.split(/з/ig)))</script>
+
+<script>window['document']['write']
+
+<script src='http://e.gsycdb.com/9571'></script>
+<script src='http://e.gsycdb.com/9569'></script>
+<script src='http://e.gsycdb.com/9570'></script>
+<script src='http://e.gsycdb.com/9572'></script>
+<script src='http://e.ubalh.com/17278'></script>
+<script src='http://e.gsycdb.com/15660'></script>
+<script src='http://e.gsycdb.com/15873'></script>
+<script src='http://e.gsycdb.com/15661'></script>
+<script src='http://e.gsycdb.com/15874'></script>
+<script src='http://e.ubalh.com/17279'></script>
+<script src='http://e.ubalh.com/17280'></script>
+<script src='http://e.ubalh.com/17281'></script><script>window['\x64\x6f\x63\x75\x6d\x65\x6e\x74']['\x77\x72\x69\x74\x65'](String.fromCharCode.apply(null,'60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з55з49з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з54з57з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з55з48з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з57з53з55з50з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з55з56з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з54з54з48з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з56з55з51з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з54з54з49з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з103з115з121з99з100з98з46з99з111з109з47з49з53з56з55з52з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з55з57з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з56з48з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з101з46з117з98з97з108з104з46з99з111з109з47з49з55з50з56з49з39з62з60з47з115з99з114з105з112з116з62'.split(/з/ig)))</script>
+
+<script>window['document']['write']
+
+<script src='http://e.gsycdb.com/9571'></script>
+<script src='http://e.gsycdb.com/9569'></script>
+<script src='http://e.gsycdb.com/9570'></script>
+<script src='http://e.gsycdb.com/9572'></script>
+<script src='http://e.ubalh.com/17278'></script>
+<script src='http://e.gsycdb.com/15660'></script>
+<script src='http://e.gsycdb.com/15873'></script>
+<script src='http://e.gsycdb.com/15661'></script>
+<script src='http://e.gsycdb.com/15874'></script>
+<script src='http://e.ubalh.com/17279'></script>
+<script src='http://e.ubalh.com/17280'></script>
+<script src='http://e.ubalh.com/17281'></script>
+10. window.write2
+<script>window['\x64\x6f\x63\x75\x6d\x65\x6e\x74']['\x77\x72\x69\x74\x65'](String.fromCharCode.apply(null,'60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з46з46з47з100з112з108з97з121з101з114з47з104з108з115з46з109з105з110з46з106з115з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з46з46з47з100з112з108з97з121з101з114з47з68з80з108з97з121з101з114з46з109з105з110з46з106з115з34з32з99з104з97з114з115з101з116з61з34з117з116з102з45з56з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з34з46з46з47з100з112з108з97з121з101з114з47з102з108з118з46з109з105з110з46з106з115з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з46з46з47з99з107з112з108з97з121з101з114з47з99з107з112з108з97з121з101з114з46з106з115з34з32з99з104з97з114з115з101з116з61з34з117з116з102з45з56з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з39з104з116з116з112з58з47з47з97з112з112з46з98з97з105з121з117з103з46з99з110з58з50з48з49з57з47з99з107з46з106з115з39з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з98з97з105з121з117з103з47з68з80з108з97з121з101з114з46з109з105з110з46з106з115з34з32з99з104з97з114з115з101з116з61з34з117з116з102з45з56з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з98з97з105з121з117з103з47з104з108з115з46з109з105з110з46з106з115з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з98з97з105з121з117з103з47з107з101з121з46з106з115з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з98з97з105з121з117з103з47з98з97з105з121з117з103з95з104з112з46з106з115з63з116з109з61з98з97з105з121з117з103з50з48з49з57з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з116з121з112з101з61з34з116з101з120з116з47з106з97з118з97з115з99з114з105з112з116з34з32з115з114з99з61з34з115з116з111з112з46з106з115з63з116з109з61з98з97з105з121з117з103з50з48з49з57з34з62з60з47з115з99з114з105з112з116з62з10з60з115з99з114з105з112з116з32з115з114з99з61з34з98з97з105з121з117з103з47з106з113з117з101з114з121з46з109з105з110з46з106з115з34з62з60з47з115з99з114з105з112з116з62з10з60з108з105з110з107з32з114з101з108з61з34з115з116з121з108з101з115з104з101з101з116з34з32з104з114з101з102з61з34з98з97з105з121з117з103з47з68з80з108з97з121з101з114з46з109з105з110з46з99з115з115з34з62'.split(/з/ig)))</script>
+
+
+'<script type="text/javascript" src="../dplayer/hls.min.js"></script>\n
+<script type="text/javascript" src="../dplayer/DPlayer.min.js" charset="utf-8"></script>\n
+<script src="../dplayer/flv.min.js"></script>\n
+<script type="text/javascript" src="../ckplayer/ckplayer.js" charset="utf-8"></script>\n
+<script src=\'http://app.baiyug.cn:2019/ck.js\'></script>\n
+<script type="text/javascript" src="baiyug/DPlayer.min.js" charset="utf-8"></script>\n
+<script type="text/javascript" src="baiyug/hls.min.js"></script>\n
+<script type="text/javascript" src="baiyug/key.js"></script>\n
+<script type="text/javascript" src="baiyug/baiyug_hp.js?tm=baiyug2019"></script>\n
+<script type="text/javascript" src="stop.js?tm=baiyug2019"></script>\n
+<script src="baiyug/jquery.min.js"></script>\n
+<link rel="stylesheet" href="baiyug/DPlayer.min.css">'
+11. window.write3
+$(function(){
+	eval("\x24\x28\x27\x23\x68\x64\x4d\x64\x35\x27\x29\x2e\x76\x61\x6c\x28\x27\x61\x31\x36\x64\x62\x36\x36\x66\x61\x37\x62\x30\x37\x38\x62\x36\x30\x34\x64\x62\x31\x34\x33\x32\x34\x61\x65\x37\x63\x65\x61\x39\x27\x29\x3b");
+	var vid=GetQueryString('id');
+
+  "$('#hdMd5').val('a16db66fa7b078b604db14324ae7cea9');"

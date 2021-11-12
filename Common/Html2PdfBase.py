@@ -32,7 +32,8 @@ class Html2PdfBase(threading.Thread):
         'remove_pdf': True,
         'remove_html': True,
         'concat_from_right': False,
-        'encoding': 'utf-8',
+        'html_encoding': None,
+        'save_encoding': 'utf-8',
         'wk_exe': r'E:\wkhtmltopdf\bin\wkhtmltopdf.exe',
         'wk_options': {
                         'enable-local-file-access': None,
@@ -64,6 +65,7 @@ class Html2PdfBase(threading.Thread):
     merge_lock = threading.Lock()
     base_sen_id = 0
     rename_lock = threading.Lock()
+    update_task_lock = threading.Lock()
 
     def __init__(self, conf=default_conf):
         super(Html2PdfBase, self).__init__()
@@ -86,23 +88,31 @@ class Html2PdfBase(threading.Thread):
         self.soup = None
 
     def replace_body(self, soup):
-        return soup
+        return soup, True
 
     def format_header(self, soup):
-        body = soup.find('body')
-        return BeautifulSoup(Html2PdfBase.html_template.format(content=str(body)), 'html.parser')
+        try:
+            body = soup.find('body')
+        except:
+            body = soup
+        return BeautifulSoup(Html2PdfBase.html_template.format(content=str(body)),
+                             'html.parser',
+                             from_encoding=self.conf['html_encoding'])
 
     def format_html(self, content):
-        soup = BeautifulSoup(content, 'html.parser')
-        soup = self.replace_body(soup)
-        soup = self.format_header(soup)
-        imgs = soup.find_all('img')
-        for img in imgs:
-            if img.has_attr('data-src'):
-                img['src'] = img['data-src']
-                img['data-src'] = ''
-            if img.has_attr('src') and not img['src'].startswith("http"):
-                img['src'] = Html2PdfBase.concat_url(self.info['url'], img['src'])
+        soup = BeautifulSoup(content, 'html.parser', from_encoding=self.conf['html_encoding'])
+        soup, found = self.replace_body(soup)
+        logger.info("replace body: %s" % found)
+        if found:
+            soup = self.format_header(soup)
+            imgs = soup.find_all('img')
+            for img in imgs:
+                if img.has_attr('data-src'):
+                    img['src'] = img['data-src']
+                    img['data-src'] = ''
+                if img.has_attr('src') and not img['src'].startswith("http"):
+                    img['src'] = Html2PdfBase.concat_url(self.info['url'], img['src'])
+        return soup.prettify(self.conf['save_encoding']) if found else None
 
     def find_menu_container(self, s):
         return s
@@ -196,6 +206,7 @@ class Html2PdfBase(threading.Thread):
         output.write(outpdf)
         outpdf.close()
         logger.info(u"输出PDF成功！")
+        list(map(lambda x: x.close(), opdfs))
         total_time = time.time() - start
         logger.info(u"总共耗时：%f 秒" % total_time)
 
@@ -300,13 +311,19 @@ class Html2PdfBase(threading.Thread):
                             self.release_a_session(session)
                             f_size = len(f_content)
                             # logger.info(req.content)
-                            f_path = os.path.join(self.base_dir, "%s_%d.html" % (self.sen, i))
-                            fd = open(f_path, "wb")
-                            fd.write(self.format_html(f_content))
-                            fd.close()
-                            fd = None
+                            f_content = self.format_html(f_content)
+                            if f_content:
+                                f_path = os.path.join(self.base_dir, "%s_%d.html" % (self.sen, i))
+                                fd = open(f_path, "wb" if self.conf['save_encoding'] else 'w')
+                                #fd = open(f_path, "wb")
+                                fd.write(f_content)
+                                fd.close()
+                                fd = None
+                            else:
+                                self.update_task_info_url(task)
                         else:
                             self.release_a_session(session)
+                            self.update_task_info_url(task)
                     self.save_pdf(task)
                     end_time = time.time()
                     logger.info(
@@ -424,6 +441,19 @@ class Html2PdfBase(threading.Thread):
         jf.close()
         return json.loads(s)
 
+    def update_task_info(self, j):
+        f = os.path.join(self.base_dir, '%s.json' % self.sen)
+        jf = open(f, 'w')
+        json.dump(j, jf)
+        jf.close()
+
+    def update_task_info_url(self, task):
+        Html2PdfBase.update_task_lock.acquire()
+        j = self.get_all_task()
+        j[task['file']]['url'] = None
+        self.update_task_info(j)
+        Html2PdfBase.update_task_lock.release()
+
     def get_not_download(self):
         j = self.get_all_task()
         f_list = set(os.listdir(self.base_dir))
@@ -499,18 +529,18 @@ class Html2PdfBase(threading.Thread):
                         Html2PdfBase.merge_lock.acquire()
                         self.merge_pdfs()
                         Html2PdfBase.merge_lock.release()
-                        if self.conf['remove_html']:
-                            for t_f in f_list:
-                                t_h = t_f.replace('.pdf', '.html')
-                                if os.path.isfile(t_h):
-                                    os.unlink(t_h)
-                        if self.conf['remove_pdf']:
-                            for t_f in f_list:
-                                if os.path.isfile(t_f):
-                                    os.unlink(t_f)
                     else:
                         logger.info("file %s.pdf exist! So not merge again!" % self.info['name'])
                     self.close_session()
+                    if self.conf['remove_html']:
+                        for t_f in f_list:
+                            t_h = t_f.replace('.pdf', '.html')
+                            if os.path.isfile(t_h):
+                                os.unlink(t_h)
+                    if self.conf['remove_pdf']:
+                        for t_f in f_list:
+                            if os.path.isfile(t_f):
+                                os.unlink(t_f)
                 else:
                     logger.info('%s is leisure!' % self.getName())
                     self.close_session()

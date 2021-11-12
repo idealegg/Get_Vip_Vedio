@@ -29,7 +29,7 @@ def get_good_name(s, get_file=True):
     replace_char = '-'
     res = []
     if not get_file:
-        s = s[:max(min(s.find('('), s.find('（')), 0)]
+        s = s[:max(min(s.find('('), s.find('（')), len(s))]
     for ch in s:
             if u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62]+'_-.':
                 res.append(ch)
@@ -135,7 +135,7 @@ def download_one2(string):
                 continue
             elif last_time > t1:
                 t1 = last_time
-            logger.info(t1, t2)
+            logger.info("%s, %s" %(t1, t2))
             params = {
                 'sec_uid': sec_uid,
                 'count': 200,
@@ -183,6 +183,10 @@ def download_one2(string):
                     logger.info('download error')
             if t1 < now_t2 <= t2:
                 break
+    if name not in checked2:
+        checked2.add(name)
+    else:
+        dup2.append((name, string))
 
 
 def download_one(s):
@@ -204,6 +208,18 @@ if __name__ == "__main__":
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     shorturls = [
+        'RaxaW6R',
+        'RaxHDpn',
+        'RaxfjKB',
+        'RaxBbbG',
+        'RaxFW11',
+        'RaxmCoH',
+        'Rax54AY',
+        'Raxjtmg',
+        'RaxUXeJ',
+        'Raxk3kC',
+        'RaxtXmA',
+        'RaxpMLK',
     "RfesPp3",
     "Rfd2n3x",
     "RfdFLTv",
@@ -372,6 +388,15 @@ if __name__ == "__main__":
     'RyBpBha',
     'RyBm48U',
     ]
-    shorturls2 = set(shorturls)
-    for shorturl in shorturls2:
-        download_one('https://v.douyin.com/%s/' % shorturl)
+    checked = set()
+    checked2 = set()
+    dup1 = []
+    dup2 = []
+    for shorturl in shorturls:
+        if shorturl not in checked:
+            download_one('https://v.douyin.com/%s/' % shorturl)
+            checked.add(shorturl)
+        else:
+            dup1.append(shorturl)
+    pprint.pprint(dup1)
+    pprint.pprint(dup2)
