@@ -1,7 +1,5 @@
 # -*- coding:utf-8 -*-
 import requests
-import json
-import os
 import time
 import re
 import string
@@ -24,6 +22,12 @@ headers = {
     "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"
 }
 
+sensitive_words = {
+    u'断桥残雪': 'dqcx',
+    u'中国医生': 'zgys',
+    u'偷拍': 'tp',
+}
+MAX_NAME_LEN = 108
 
 def get_good_name(s, get_file=True):
     replace_char = '-'
@@ -35,7 +39,12 @@ def get_good_name(s, get_file=True):
                 res.append(ch)
             elif get_file and res and res[-1] != replace_char:
                 res.append(replace_char)
-    return ''.join(res).strip('_-')
+    ret = ''.join(res).strip('_-')
+    for k in sensitive_words:
+        ret = ret.replace(k, sensitive_words[k])
+    if len(ret) > MAX_NAME_LEN:
+        ret = ret[:MAX_NAME_LEN]
+    return ret
 
 
 def get_last_time(d, d2):
@@ -83,24 +92,35 @@ def reorder(d, stats):
             os.rename(os.path.join(d, f), os.path.join(d, f2))
             logger.info("rename in [%s]\n%s\n%s" % (d, f, f2))
 
+def format_year_month(y, m):
+    return '%04d-%02d-01 00:00:00' % (y, m)
+    
+def string_time_to_msec(s):
+    return int(time.mktime(time.strptime(s, "%Y-%m-%d %H:%M:%S")) * 1000)
 
-def download_one2(string):
+def download_one2(input_s):
     now_t = time.localtime(time.time())
     now_t2 = int(time.mktime(now_t) * 1000)
-    year = list(map(lambda yi: "%04d" % yi, range(2018, now_t.tm_year+1)))
-    month = list(map(lambda mo: "%02d" % mo, range(1, 13)))
-    shroturl = re.findall('[a-z]+://[\S]+', string, re.I | re.M)[0]
-    logger.info(shroturl)
-    startpage = requests.get(url=shroturl, headers=headers, allow_redirects=False)
-    location = startpage.headers['location']
+    year = list(range(2018, now_t.tm_year+1))
+    month = list(range(1, 13))
+    input_url = 'https://v.douyin.com/%s/' %  input_s
+    logger.info(input_url)
+    req_start_page = requests.get(url=input_url, headers=headers, allow_redirects=False)
+    if req_start_page.status_code != 302:
+        logger.error('get start page failed!')
+        return
+    location = req_start_page.headers['location']
     logger.info(location)
     sec_uid = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
     logger.info(sec_uid)
-    getname = requests.get(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
-                           headers=headers).text
-    userinfo = json.loads(getname)
-    logger.info(userinfo)
-    name = userinfo['user_info']['nickname']
+    req_name = requests.get(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
+                           headers=headers)
+    if req_name.status_code != 200:
+        logger.error('get name failed!')
+        return
+    user_info = json.loads(req_name.text)
+    logger.info(user_info)
+    name = user_info['user_info']['nickname']
     logger.info(name)
     name = get_good_name(name, False)
     logger.info(name)
@@ -110,32 +130,29 @@ def download_one2(string):
         #pprint.pprint(may_be_dir)
         logger.info(pprint.pformat(may_be_dir))
         name = may_be_dir[0]
-    outdir2 = os.path.join(outdir, name)
-    last_time = int(time.mktime(time.strptime(year[0] + '-' + month[0] + '-01 00:00:00', "%Y-%m-%d %H:%M:%S")) * 1000)
+    out_dir_anchor = os.path.join(outdir, name)
+    last_time = string_time_to_msec(format_year_month(year[0], month[0]))
     vn = 0
-    if not os.path.exists(outdir2):
-        os.mkdir(outdir2)
+    if not os.path.exists(out_dir_anchor):
+        os.mkdir(out_dir_anchor)
     else:
         logger.info('directory exist')
-        last_time = get_last_time(outdir2, last_time)
-        vn = len(list(filter(lambda x: x.endswith('.mp4'), os.listdir(outdir2))))
-    md5s, stats = remove_dup(outdir2)
-    timepool = [x + '-' + y + '-01 00:00:00' for x in year for y in month]
-    logger.info(timepool)
-    k = len(timepool)
+        last_time = get_last_time(out_dir_anchor, last_time)
+        vn = len(list(filter(lambda x: x.endswith('.mp4'), os.listdir(out_dir_anchor))))
+    md5s, stats = remove_dup(out_dir_anchor)
+    time_pool = [format_year_month(x, y) for x in year for y in month]
+    time_pool.append(format_year_month(year[-1]+1, month[-1]))
+    logger.info(time_pool)
+    k = len(time_pool)
     for i in range(k):
         if i < k - 1:
-            logger.info('begintime=' + timepool[i])
-            logger.info('endtime=' + timepool[i + 1])
-            beginarray = time.strptime(timepool[i], "%Y-%m-%d %H:%M:%S")
-            endarray = time.strptime(timepool[i + 1], "%Y-%m-%d %H:%M:%S")
-            t1 = int(time.mktime(beginarray) * 1000)
-            t2 = int(time.mktime(endarray) * 1000)
+            t1 = string_time_to_msec(time_pool[i])
+            t2 = string_time_to_msec(time_pool[i + 1])
             if last_time >= t2:
                 continue
             elif last_time > t1:
                 t1 = last_time
-            logger.info("%s, %s" %(t1, t2))
+            logger.info("begin time=%s[%s], end time=%s[%s]" %(time_pool[i], t1, time_pool[i + 1], t2))
             params = {
                 'sec_uid': sec_uid,
                 'count': 200,
@@ -144,10 +161,11 @@ def download_one2(string):
                 'aid': 1128,
                 '_signature': 'PtCNCgAAXljWCq93QOKsFT7QjR'
             }
-            awemeurl = 'https://www.iesdouyin.com/web/api/v2/aweme/post/'
-            req = requests.get(url=awemeurl, params=params, headers=headers)
+            list_url = 'https://www.iesdouyin.com/web/api/v2/aweme/post/'
+            req = requests.get(url=list_url, params=params, headers=headers)
             logger.info(req)
             if req.status_code != 200:
+                logger.error("get list error: [%s][%s]" % (name, input_s))
                 exit(1)
             data = json.loads(req.content)
             logger.info(data)
@@ -162,7 +180,7 @@ def download_one2(string):
                 logger.info(videotitle)
                 logger.info(videourl)
                 #start = time.time()
-                logger.info(shroturl)
+                logger.info(input_url)
                 logger.info(b'%s ===>downloading' % videotitle.encode('utf8'))
                 try:
                     with requests.get(url=videourl, headers=headers) as req2:
@@ -172,7 +190,7 @@ def download_one2(string):
                             if md5 not in md5s:
                                 vn += 1
                                 vf = '%s_%s.mp4' % (vn, videotitle)
-                                vfile = os.path.join(outdir2, vf)
+                                vfile = os.path.join(out_dir_anchor, vf)
                                 with open(vfile, 'wb') as v:
                                     v.write(req2.content)
                                 md5s[md5] = vf
@@ -184,9 +202,9 @@ def download_one2(string):
             if t1 < now_t2 <= t2:
                 break
     if name not in checked2:
-        checked2.add(name)
+        checked2[name] = input_s
     else:
-        dup2.append((name, string))
+        dup2.append((name, input_s, checked2[name]))
 
 
 def download_one(s):
@@ -208,9 +226,9 @@ if __name__ == "__main__":
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     shorturls = [
-        'RaxaW6R',
-        'RaxHDpn',
-        'RaxfjKB',
+        #'RaxaW6R',
+        #'RaxHDpn',
+        #'RaxfjKB',
         'RaxBbbG',
         'RaxFW11',
         'RaxmCoH',
@@ -228,7 +246,7 @@ if __name__ == "__main__":
     "RfRJqm1",
     "RfdwbdX",
     "Rfd3sSV",
-    "RfdpAde",
+    #"RfdpAde",
     "Rfdq5L1",
     "RfdqWKa",
     "RfdvCLX",
@@ -315,7 +333,7 @@ if __name__ == "__main__":
     'RBEyuRW',
     'RBE4vXr',
     'RBE4CJj',
-    'RBET8HL',
+    #'RBET8HL',
     'RBE9xXq',
     'RBEq3GS',
     'RBE4S8k',
@@ -324,12 +342,12 @@ if __name__ == "__main__":
     'RBEsxgN',
     'RBEsF3Q',
     'RBEp8jK',
-    'RBEgng4',
+    #'RBEgng4',
     'RBEvLK7',
     'RBEWW7t',
     'RBE4kfx',
     'RBE7us1',
-    'RBEptSn',
+    #'RBEptSn',
     'RBEvKtY',
     'RBEELEf',
     'RBE7FXw',
@@ -378,25 +396,24 @@ if __name__ == "__main__":
     'RyBgY7e',
     'RyB9gNG',
     'RyBtGVJ',
-    'RyBtGVJ',
     'RyBAG3r',
     'RyBAG7w',
     'RyBG1SP',
     'RyBU9yB',
     'RyBaoCY',
-    'RyByhFm',
-    'RyBpBha',
-    'RyBm48U',
+    #'RyByhFm',
+    #'RyBpBha',
+    #'RyBm48U',
     ]
     checked = set()
-    checked2 = set()
+    checked2 = {}
     dup1 = []
     dup2 = []
-    for shorturl in shorturls:
-        if shorturl not in checked:
-            download_one('https://v.douyin.com/%s/' % shorturl)
-            checked.add(shorturl)
+    for short_url in shorturls:
+        if short_url not in checked:
+            download_one(short_url)
+            checked.add(short_url)
         else:
-            dup1.append(shorturl)
+            dup1.append(short_url)
     pprint.pprint(dup1)
     pprint.pprint(dup2)
