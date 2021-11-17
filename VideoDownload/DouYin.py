@@ -120,16 +120,21 @@ def download_one2(input_s):
         return
     user_info = json.loads(req_name.text)
     logger.info(user_info)
-    name = user_info['user_info']['nickname']
-    logger.info(name)
-    name = get_good_name(name, False)
+    uid = user_info['user_info']['unique_id']
+    if uid in dir_uid_map:
+        name = dir_uid_map[uid]
+    else:
+        name = user_info['user_info']['nickname']
+        logger.info(name)
+        name = get_good_name(name, False)
+        dir_uid_map[uid] = name
     logger.info(name)
     all_dir = os.listdir(outdir)
-    may_be_dir = list(filter(lambda x: x.startswith(name), all_dir))
-    if len(may_be_dir):
+    #may_be_dir = list(filter(lambda x: x.startswith(name), all_dir))
+    #if len(may_be_dir):
         #pprint.pprint(may_be_dir)
-        logger.info(pprint.pformat(may_be_dir))
-        name = may_be_dir[0]
+        #logger.info(pprint.pformat(may_be_dir))
+        #name = may_be_dir[0]
     out_dir_anchor = os.path.join(outdir, name)
     last_time = string_time_to_msec(format_year_month(year[0], month[0]))
     vn = 0
@@ -194,6 +199,7 @@ def download_one2(input_s):
                                 with open(vfile, 'wb') as v:
                                     v.write(req2.content)
                                 md5s[md5] = vf
+                                news.append(vfile)
                             else:
                                 logger.info("skip same file [%s][%s]"%(md5s[md5], md5))
                 except Exception as e:
@@ -213,6 +219,7 @@ def download_one(s):
     while not over:
         try:
             download_one2(s)
+            #break
             over = True
         except Exception as e:
             logger.info(e)
@@ -409,11 +416,27 @@ if __name__ == "__main__":
     checked2 = {}
     dup1 = []
     dup2 = []
+    news = []
+    dir_uid_map = {}
+    dir_uid_file = os.path.join(outdir, 'dir_uid')
+    if os.path.isfile(dir_uid_file):
+        dir_uid_fd = open(dir_uid_file, 'r')
+        dir_uid_map = json.load(dir_uid_fd)
+        dir_uid_fd.close()
+    begin_t = time.time()
     for short_url in shorturls:
         if short_url not in checked:
             download_one(short_url)
             checked.add(short_url)
+            #break
         else:
             dup1.append(short_url)
+    dir_uid_fd = open(dir_uid_file, 'w')
+    json.dump(dir_uid_map, dir_uid_fd)
+    dir_uid_fd.close()
     pprint.pprint(dup1)
     pprint.pprint(dup2)
+    pprint.pprint(news)
+    print(len(news))
+    end_t = time.time()
+    print("time cost: %s seconds" % (end_t - begin_t))

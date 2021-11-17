@@ -116,19 +116,45 @@ def main(inlist):
                         fo2.write(fo1.read()+b'\n')
 
 
-if __name__ == "__main__":
-    inlist = [
-        ('etcommon', 19),
-        ('fdp', 69),
-        ('ttwconf', 64),
-        ('applications', 74),
-        ('fdp', 143),
-        ('etcommon', 30),
-        ('fdp', 151),
-        ('ttwconf', 146),
-        ('applications', 192),
-        ('ttwconf', 144),
+def get_file_list(csci, reqid):
+    url = 'http://172.17.118.204:7990/rest/api/latest/projects/TTWSRC/repos/%s/pull-requests/%s/changes' % (csci, reqid)
+    headers['Referer'] = "http://172.17.118.204:7990/projects/TTWSRC/repos/%s/pull-requests/%s/diff" % (csci, reqid)
+    req = requests.get(url, headers=headers, params=params2)
+    print(req)
+    outfiles = []
+    if req.status_code == 200:
+        j = json.loads(req.content)
+        #pprint.pprint(j)
+        outs = []
+        for files in j['values']:
+            if not files['path']['toString'].endswith('wav'):
+                print("%s/%s" % (csci, files['path']['toString']))
+    return outfiles
 
-    ]
-    main(inlist)
+
+if __name__ == "__main__":
+    get_diff = False
+    if get_diff:
+        inlist = [
+            ('etcommon', 19),
+            ('fdp', 69),
+            ('ttwconf', 64),
+            ('applications', 74),
+            ('fdp', 143),
+            ('etcommon', 30),
+            ('fdp', 151),
+            ('ttwconf', 146),
+            ('applications', 192),
+            ('ttwconf', 144),
+
+        ]
+        main(inlist)
+    else:
+        inlist = [
+            ('applications', 208),
+            ('ttwconf', 156),
+        ]
+        for csci, reqid in inlist:
+            get_file_list(csci, reqid)
+
 
