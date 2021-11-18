@@ -120,19 +120,24 @@ def download_one2(input_s):
         return
     user_info = json.loads(req_name.text)
     logger.info(user_info)
-    uid = user_info['user_info']['unique_id']
+    uid = user_info['user_info']['uid']
     if uid in dir_uid_map:
-        name = dir_uid_map[uid]
+        name = dir_uid_map[uid]['name']
+        if input_s not in dir_uid_map[uid]['shorturl']:
+            dir_uid_map[uid]['shorturl'].append(input_s)
+            logger.error('uid [%s] to dual short: [%s]' % (uid, dir_uid_map[uid]['shorturl']))
     else:
         name = user_info['user_info']['nickname']
         logger.info(name)
         name = get_good_name(name, False)
-        dir_uid_map[uid] = name
+        dir_uid_map[uid] = user_info['user_info']
+        dir_uid_map[uid]['name'] = name
+        dir_uid_map[uid]['shorturl'] = [input_s]
     logger.info(name)
-    all_dir = os.listdir(outdir)
+    #return
+    #all_dir = os.listdir(outdir)
     #may_be_dir = list(filter(lambda x: x.startswith(name), all_dir))
     #if len(may_be_dir):
-        #pprint.pprint(may_be_dir)
         #logger.info(pprint.pformat(may_be_dir))
         #name = may_be_dir[0]
     out_dir_anchor = os.path.join(outdir, name)
@@ -142,9 +147,11 @@ def download_one2(input_s):
         os.mkdir(out_dir_anchor)
     else:
         logger.info('directory exist')
-        last_time = get_last_time(out_dir_anchor, last_time)
+        #last_time = get_last_time(out_dir_anchor, last_time)
         vn = len(list(filter(lambda x: x.endswith('.mp4'), os.listdir(out_dir_anchor))))
     md5s, stats = remove_dup(out_dir_anchor)
+    if stats:
+        last_time = max(max(map(lambda x: x.st_mtime * 1000, stats.values())), last_time)
     time_pool = [format_year_month(x, y) for x in year for y in month]
     time_pool.append(format_year_month(year[-1]+1, month[-1]))
     logger.info(time_pool)
@@ -418,7 +425,7 @@ if __name__ == "__main__":
     dup2 = []
     news = []
     dir_uid_map = {}
-    dir_uid_file = os.path.join(outdir, 'dir_uid')
+    dir_uid_file = os.path.join(outdir, 'user_info.json')
     if os.path.isfile(dir_uid_file):
         dir_uid_fd = open(dir_uid_file, 'r')
         dir_uid_map = json.load(dir_uid_fd)
@@ -434,9 +441,9 @@ if __name__ == "__main__":
     dir_uid_fd = open(dir_uid_file, 'w')
     json.dump(dir_uid_map, dir_uid_fd)
     dir_uid_fd.close()
-    pprint.pprint(dup1)
-    pprint.pprint(dup2)
-    pprint.pprint(news)
-    print(len(news))
+    logger.info(pprint.pformat(dup1))
+    logger.info(pprint.pformat(dup2))
+    logger.info(pprint.pformat(news))
+    logger.info(len(news))
     end_t = time.time()
-    print("time cost: %s seconds" % (end_t - begin_t))
+    logger.info("time cost: %s seconds" % (end_t - begin_t))
