@@ -3,7 +3,7 @@
     "disable_existing_loggers":false,
     "formatters":{
         "simple":{
-            "format":"%(asctime)s-%(levelname)s-%(funcName)s-%(lineno)d\n%(message)s"
+            "format":"[%(asctime)s][%(levelname)s][%(filename)s:%(lineno)d]][%(funcName)s]+-+-+-+-+-\n%(message)s"
         }
     },
     "handlers":{

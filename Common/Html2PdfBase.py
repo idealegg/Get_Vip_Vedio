@@ -21,8 +21,9 @@ class Html2PdfBase(threading.Thread):
         'threading_num': 8,
         'wait_session_sleep_time': 0.5,
         'sen_field_name': ['sen', 'name', 'url', 'src_type'],
-        'headers': {},
-        'sen_info_path': os.path.join(conf_dir, 'sens_info.txt'),
+        # 'sen_info_path': os.path.join(conf_dir, 'sens_info.txt'),
+        'headers': {
+            "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"},
         'request_timeout': 10.0,
         'request_retry': 10,
         'skip_request_error': False,
@@ -70,6 +71,7 @@ class Html2PdfBase(threading.Thread):
     def __init__(self, conf=default_conf):
         super(Html2PdfBase, self).__init__()
         self._stop_event = threading.Event()
+        self.conf['sen_info_path'] = os.path.join(conf_dir, 'sens_info_%s.txt' % self.__class__.__name__.lower())
         Html2PdfBase.conf.update(conf)
         Html2PdfBase.base_dir = self.conf['base_dir']
         self.sen = None
@@ -132,7 +134,7 @@ class Html2PdfBase(threading.Thread):
             for i, item in enumerate(self.find_all_hrefs(menu_tag)):
                 level = 0
                 it = item
-                while it.parent != menu_tag:
+                while it and it.parent != menu_tag:
                     level += 1
                     it = it.parent
                 text = item.text.strip()
@@ -140,7 +142,7 @@ class Html2PdfBase(threading.Thread):
                 url = None
                 if item.has_attr('href'):
                     url = item.get('href')
-                    if self.conf['append_url_before'] and 'url' in self.info and self.info['url']:
+                    if not url.startswith('http') and self.conf['append_url_before'] and 'url' in self.info and self.info['url']:
                         url = Html2PdfBase.concat_url(self.info['url'], url)
                 urls[fname] = {
                       'url': url,
@@ -510,8 +512,7 @@ class Html2PdfBase(threading.Thread):
                         else:
                             while self.task_list and retry > 0:
                                 logger.info("len: %d" % len(self.task_list))
-                                logger.info("tasks:")
-                                logger.info(self.task_list)
+                                logger.info("tasks: %s" % self.task_list)
                                 self.before_start_download()
                                 self.start_download()
                                 self.get_not_download()
@@ -565,7 +566,6 @@ if __name__ == "__main__":
                          'wait_session_sleep_time': 0.1,
                          'src_type': 'file',
                          'sen_info_path': os.path.join(conf_dir, 'sens_info_html2pdf.txt'),
-                         'headers':{"user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"},
                          })
   th.start()
   th.join()

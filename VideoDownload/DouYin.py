@@ -5,6 +5,7 @@ import re
 import string
 import hashlib
 import pprint
+import traceback
 from Util.myLogging import *
 
 
@@ -29,6 +30,11 @@ sensitive_words = {
 }
 MAX_NAME_LEN = 108
 
+
+def walk_a_dir(d):
+    return [x for x in os.listdir(d) if x.endswith('.mp4')]
+
+
 def get_good_name(s, get_file=True):
     replace_char = '-'
     res = []
@@ -49,7 +55,7 @@ def get_good_name(s, get_file=True):
 
 def get_last_time(d, d2):
     res = d2
-    for f in os.listdir(d):
+    for f in walk_a_dir(d):
         st = os.stat(os.path.join(d, f))
         if res < st.st_mtime * 1000:
             res = st.st_mtime * 1000
@@ -59,7 +65,7 @@ def get_last_time(d, d2):
 def remove_dup(d):
     md5s = {}
     stats = {}
-    for f in os.listdir(d):
+    for f in walk_a_dir(d):
         fp = os.path.join(d, f)
         with open(fp, 'rb') as fd:
             md5 = hashlib.md5(fd.read()).hexdigest()
@@ -107,7 +113,7 @@ def download_one2(input_s):
     logger.info(input_url)
     req_start_page = requests.get(url=input_url, headers=headers, allow_redirects=False)
     if req_start_page.status_code != 302:
-        logger.error('get start page failed!')
+        logger.error('get start page failed! [%s][%s]' % (input_url, req_start_page))
         return
     location = req_start_page.headers['location']
     logger.info(location)
@@ -116,7 +122,7 @@ def download_one2(input_s):
     req_name = requests.get(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
                            headers=headers)
     if req_name.status_code != 200:
-        logger.error('get name failed!')
+        logger.error('get name failed! [%s][%s]' % (req_name.url, req_name))
         return
     user_info = json.loads(req_name.text)
     logger.info(user_info)
@@ -148,7 +154,7 @@ def download_one2(input_s):
     else:
         logger.info('directory exist')
         #last_time = get_last_time(out_dir_anchor, last_time)
-        vn = len(list(filter(lambda x: x.endswith('.mp4'), os.listdir(out_dir_anchor))))
+        vn = len(walk_a_dir(out_dir_anchor))
     md5s, stats = remove_dup(out_dir_anchor)
     if stats:
         last_time = max(max(map(lambda x: x.st_mtime * 1000, stats.values())), last_time)
@@ -177,8 +183,8 @@ def download_one2(input_s):
             req = requests.get(url=list_url, params=params, headers=headers)
             logger.info(req)
             if req.status_code != 200:
-                logger.error("get list error: [%s][%s]" % (name, input_s))
-                exit(1)
+                logger.error("get list error: [%s][%s][%s][%s]" % (name, input_s, list_url, params))
+                return
             data = json.loads(req.content)
             logger.info(data)
             # logger.info(type(data))
@@ -208,10 +214,10 @@ def download_one2(input_s):
                                 md5s[md5] = vf
                                 news.append(vfile)
                             else:
-                                logger.info("skip same file [%s][%s]"%(md5s[md5], md5))
+                                logger.warning("skip same file [%s][%s]"%(md5s[md5], md5))
                 except Exception as e:
-                    logger.info(e)
-                    logger.info('download error')
+                    logger.error('download error: %s' % e)
+                    logger.error(traceback.format_exc())
             if t1 < now_t2 <= t2:
                 break
     if name not in checked2:
@@ -229,7 +235,8 @@ def download_one(s):
             #break
             over = True
         except Exception as e:
-            logger.info(e)
+            logger.error(e)
+            logger.error(traceback.format_exc())
             time.sleep(t)
             t += 60 * 5
 
@@ -240,6 +247,24 @@ if __name__ == "__main__":
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     shorturls = [
+        "RVkk72M",
+        "RVkh8L5",
+        "RVk89Cs",
+        "RVkd6UH",
+        "RVBY8Ne",
+        "RVBDCTn",
+        "RVB6Nkn",
+        "RVBM796",
+        #"RVB8K2G",
+        "RVBJjLp",
+        "RVB2xpN",
+        "RVBkjaw",
+        "RVBNaP3",
+        "RVBjTVY",
+        "RVBk6mA",
+        #"RVBATWa",
+        "RVBAAFe",
+        "RVB6cS1",
         #'RaxaW6R',
         #'RaxHDpn',
         #'RaxfjKB',
@@ -419,6 +444,7 @@ if __name__ == "__main__":
     #'RyBpBha',
     #'RyBm48U',
     ]
+    #shorturls = ['Rh7G7kx']
     checked = set()
     checked2 = {}
     dup1 = []
