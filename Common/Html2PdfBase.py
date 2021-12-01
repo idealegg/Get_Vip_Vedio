@@ -71,9 +71,10 @@ class Html2PdfBase(threading.Thread):
     def __init__(self, conf=default_conf):
         super(Html2PdfBase, self).__init__()
         self._stop_event = threading.Event()
-        self.conf['sen_info_path'] = os.path.join(conf_dir, 'sens_info_%s.txt' % self.__class__.__name__.lower())
+        self.class_name = self.__class__.__name__.lower()
+        self.conf['sen_info_path'] = os.path.join(conf_dir, 'sens_info_%s.txt' % self.class_name)
         Html2PdfBase.conf.update(conf)
-        Html2PdfBase.base_dir = self.conf['base_dir']
+        Html2PdfBase.base_dir = os.path.join(self.conf['base_dir'], self.class_name)
         self.sen = None
         self.info = None
         self.sessions = []
@@ -86,6 +87,10 @@ class Html2PdfBase(threading.Thread):
         self.cur_task_num = 0
         self.headers = {}
         self.headers.update(self.conf['headers'])
+        self.cookies = {}
+        self.cookies.update(self.conf['cookies'])
+        for k in self.cookies:
+            self.cookies[k] = self.cookies[k].encode('utf-8').decode('latin-1')
         self.req_session = requests.Session()
         self.soup = None
 
@@ -122,45 +127,56 @@ class Html2PdfBase(threading.Thread):
     def find_all_hrefs(self, container):
         return container.find_all('a')
 
+    def get_page_title(self, item):
+        return item.text.strip()
+
     def get_url_list(self, f):
         url = self.info['url']
-        response = requests.get(url, headers=self.headers)
-        logger.info(response)
-        if response.status_code == 200:
+        if os.path.isfile(url):
+            with open(url, 'rb') as furl:
+                soup = BeautifulSoup(furl, "html.parser")
+        else:
+            response = requests.get(url, headers=self.headers)
+            logger.info(response)
+            if response.status_code != 200:
+                return
             soup = BeautifulSoup(response.content, "html.parser")
-            menu_tag = self.find_menu_container(soup)
-            logger.info(menu_tag)
-            urls = {}
-            for i, item in enumerate(self.find_all_hrefs(menu_tag)):
-                level = 0
-                it = item
-                while it and it.parent != menu_tag:
-                    level += 1
-                    it = it.parent
-                text = item.text.strip()
-                fname = "%s_%s.pdf" % (self.sen, i)
-                url = None
-                if item.has_attr('href'):
-                    url = item.get('href')
-                    if not url.startswith('http') and self.conf['append_url_before'] and 'url' in self.info and self.info['url']:
-                        url = Html2PdfBase.concat_url(self.info['url'], url)
-                urls[fname] = {
-                      'url': url,
-                      'level': level,
-                      'label': text,
-                      'index': i,
-                      'file': fname,
-                      }
-                logger.info("%*d %s" % (level, level, item))
-            with open(f, 'w') as jf:
-                json.dump(urls, jf)
+        menu_tag = self.find_menu_container(soup)
+        logger.info(menu_tag)
+        urls = {}
+        for i, item in enumerate(self.find_all_hrefs(menu_tag)):
+            level = 0
+            it = item
+            while it and it.parent != menu_tag:
+                level += 1
+                it = it.parent
+            text = self.get_page_title(item)
+            fname = "%s_%s.pdf" % (self.sen, i)
+            url = None
+            if item.has_attr('href'):
+                url = item.get('href')
+            elif item.has_attr('data-link'):
+                url = item.get('data-link')
+                text = item.get('data-title')
+            if url and not url.startswith('http') and self.conf['append_url_before'] and 'url' in self.info and self.info['url']:
+                url = Html2PdfBase.concat_url(self.info['url'], url)
+            urls[fname] = {
+                  'url': url,
+                  'level': level,
+                  'label': text,
+                  'index': i,
+                  'file': fname,
+                  }
+            logger.info("%*d %s" % (level, level, item))
+        with open(f, 'w') as jf:
+            json.dump(urls, jf)
 
     def save_pdf(self, task):
         logger.info(task)
         confg = pdfkit.configuration(wkhtmltopdf=self.conf['wk_exe'])
         options = self.conf['wk_options']
         try:
-            src_type = self.info['src_type'] or self.conf['src_type']
+            src_type = ('src_type' in self.info and self.info['src_type']) or self.conf['src_type']
             if src_type == 'file':
                 pdfkit.from_file(os.path.join(self.base_dir, task['file'].replace('.pdf', '.html')),
                                  os.path.join(self.base_dir, task['file']),
@@ -175,7 +191,6 @@ class Html2PdfBase(threading.Thread):
             logger.info(ose)
 
     def merge_pdfs(self):
-        start = time.time()
         output = PdfFileWriter()
         opdfs = []
         begin_page = 0
@@ -209,8 +224,6 @@ class Html2PdfBase(threading.Thread):
         outpdf.close()
         logger.info(u"输出PDF成功！")
         list(map(lambda x: x.close(), opdfs))
-        total_time = time.time() - start
-        logger.info(u"总共耗时：%f 秒" % total_time)
 
     def sorted(self, iters):
         iters.sort(key=lambda x: int(x[x.rfind('_') + 1:x.rfind('.')], 10))
@@ -298,10 +311,10 @@ class Html2PdfBase(threading.Thread):
                     logger.info("%s [%d] [%d/%d]: %s\n" % (self.sen, i, self.cur_task_num, self.total_task_num, url))
                     if self.conf['src_type'] == 'file':
                         session = self.get_a_session()
-                        if self.headers:
-                            req2 = session.get(url=url, headers=self.headers, timeout=self.conf['download_timeout'])
-                        else:
-                            req2 = session.get(url=url, timeout=self.conf['download_timeout'])
+                        req2 = session.get(url=url,
+                                            headers=self.headers if self.headers else None,
+                                            timeout=self.conf['download_timeout'],
+                                            cookies=self.cookies if self.cookies else None)
                         logger.info("%s [%d]:\n\treq: [%s]\n\tencoding: %s\n\theader: %s\n" % (
                         self.sen, i, req2, req2.encoding, req2.headers))
                         if req2.status_code == 200:
@@ -489,6 +502,7 @@ class Html2PdfBase(threading.Thread):
         logger.info(cls.done_file_list)
 
     def run(self):
+        start_t = time.time()
         req = None
         self.check_dir()
         self.get_exist_file()
@@ -556,6 +570,8 @@ class Html2PdfBase(threading.Thread):
                 traceback.print_exc()
                 break
         self.close_session()
+        total_time = time.time() - start_t
+        logger.info(u"总共耗时：%f 秒" % total_time)
         logger.info("getSens.run thread %s end!" % self.getName())
 
 

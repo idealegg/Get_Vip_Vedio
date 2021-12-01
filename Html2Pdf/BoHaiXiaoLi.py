@@ -1,106 +1,112 @@
 # coding=utf-8
-import os
-import re
-import time
-import logging
-import pdfkit
 import requests
-from bs4 import BeautifulSoup
-from PyPDF2 import PdfFileMerger, PdfFileReader
 from Util.myLogging import *
+from Common.Html2PdfBase import Html2PdfBase
 
 
-def get_url_list(html_path):
-    with open(html_path, 'rb') as html:
-        soup = BeautifulSoup(html, "html.parser")
-        links = list(map(lambda x: (x['href'], x.text.strip()), soup.find_all('a', class_='list_item js_post')))
+class BoHaiXiaoLi(Html2PdfBase):
+    def __init__(self, conf=Html2PdfBase.default_conf):
+        super(BoHaiXiaoLi, self).__init__(conf)
+
+    def format_header(self, soup):
+        return soup
+
+    def find_all_hrefs2(self, container):
+        links = container.find_all('a', class_='list_item js_post')
         if not links:
-            links = list(map(lambda x: (x.find_all('a')[-1]['href'], x.find_all('a')[-1].text.strip()),
+            links = list(map(lambda x: x.find_all('a')[-1],
                             filter(lambda x: x.contents
                                   and x.find_all('a')
                                   and (x.find_all('a')[-1].find_all('strong') or x.find_all('a')[-1].find_parents('strong')),
-                                       soup.find_all('p'))))
+                                   container.find_all('p'))))
         logger.info(links)
-    return links
+        return links
+
+    def find_all_hrefs(self, container):
+        links = list(filter(lambda x:x.has_attr('data-link') and x.has_attr('data-title'),
+                            container.find_all('li')))
+        logger.info(links)
+        return links
+
+    def get_url_list(self, f):
+        urls = {}
+        iurl = 'https://mp.weixin.qq.com/mp/appmsgalbum'
+        begin_msgid = self.info['begin_msgid']
+        i = 0
+        while begin_msgid:
+            self.conf['params']['begin_msgid'] = begin_msgid
+            req = requests.get(iurl, headers=self.conf['headers2'], params=self.conf['params'])
+            if req.status_code == 200:
+                ij = json.loads(req.content)
+                import pprint
+                pprint.pprint(ij)
+                for item in ij['getalbum_resp']['article_list']:
+                    level = 0
+                    fname = "%s_%s.pdf" % (self.sen, i)
+                    urls[fname] = item
+                    url = item['url']
+                    if url and not url.startswith('http') and self.conf['append_url_before'] and 'url' in self.info and self.info['url']:
+                        url = Html2PdfBase.concat_url(self.info['url'], url)
+                    urls[fname].update({
+                          'url': url,
+                          'level': 1,
+                          'label': item['title'],
+                          'index': i,
+                          'file': fname,
+                          })
+                    begin_msgid = item['msgid']
+                    logger.info("%*d %s" % (level, level, item))
+                    i += 1
+                if ij['getalbum_resp']['continue_flag'] == '0':
+                    begin_msgid = None
+            else:
+                begin_msgid = None
+        with open(f, 'w') as jf:
+            json.dump(urls, jf)
 
 
-def parse_url_to_html(url, name):
-    try:
-        response = requests.get(url)
-        logger.info("%s %s" % (response, url))
-        soup = BeautifulSoup(response.content, 'html.parser')
-        imgs = soup.find_all('img')
-        for img in imgs:
-            if img.has_attr('data-src'):
-                img['src'] = img['data-src']
-                img['data-src'] = ''
-            if img.has_attr('src') and not img['src'].startswith("http"):
-                img['src'] = "https://mp.weixin.qq.com" + img['src']
-        html = soup.prettify(encoding='utf8')
-        with open(name, 'wb') as f:
-            f.write(html)
-        return name
-    except Exception as e:
-        logging.error("解析错误", exc_info=True)
+if __name__ == "__main__":
+  setup_logging()
+  th = BoHaiXiaoLi(conf={'base_dir': r'E:\hzw',
+                         'check_downloaded_retry': 1,
+                         'wait_session_sleep_time': 0.1,
+                         'sen_field_name': ['sen', 'name', 'url', 'album_id', 'begin_msgid'],
+                         'src_type': 'file',
+                         'headers':{
+                             "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
+                         },
+                         'params':{"action": 'getalbum',
+                                    "__biz": 'MzUyMzUyNzM4Ng==',
+                                    "album_id": '2091728990028824579',
+                                    "count": '10',
+                                    "begin_msgid": '2247503545',
+                                    "begin_itemidx": '1',
+                                    "uin": '',
+                                    "key": '',
+                                    "pass_ticket": '',
+                                    "wxtoken": '',
+                                    "devicetype": '',
+                                    "clientversion": '',
+                                    "__biz": 'MzUyMzUyNzM4Ng==',
+                                    "appmsg_token": '',
+                                    "x5": '0',
+                                    "f": 'json',},
+                         'headers2':{
+    "accept": '*/*',
+    "accept-encoding": 'gzip, deflate, br',
+    "accept-language": 'zh-CN,zh;q=0.9',
+    "cache-control": 'no-cache',
+    "pragma": 'no-cache',
+    "referer": 'https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MzUyMzUyNzM4Ng==&action=getalbum&album_id=2091728990028824579',
+    "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
+    "sec-ch-ua-mobile": '?0',
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": 'empty',
+    "sec-fetch-mode": 'cors',
+    "sec-fetch-site": 'same-origin',
+    "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
+    "x-requested-with": 'XMLHttpRequest',}
+                         })
+  th.start()
+  th.join()
 
-
-def save_pdf(htmls, file_name):
-    confg = pdfkit.configuration(wkhtmltopdf=r'E:\wkhtmltopdf\bin\wkhtmltopdf.exe')
-    options = {
-        'enable-local-file-access': None,
-        'enable-javascript': None,
-        'javascript-delay': 1000,
-        'no-stop-slow-scripts': None
-    }
-    try:
-        pdfkit.from_file(htmls, file_name, options=options, configuration=confg)
-    except OSError as ose:
-        logger.info(ose)
-
-
-def download_one(file_name):
-    start = time.time()
-    logger.info(file_name)
-    urls = get_url_list("%s.html" % file_name)
-    for index, url in enumerate(urls):
-      parse_url_to_html(url[0], str(index) + ".html")
-    htmls =[]
-    pdfs = []
-    for i, url in enumerate(urls):
-        htmls.append(str(i) + '.html')
-        pdfs.append(file_name+str(i)+'.pdf')
-        save_pdf(str(i) + '.html', file_name+str(i)+'.pdf')
-        logger.info(u"转换完成第"+str(i)+'个html')
-    merger = PdfFileMerger()
-    for i, pdf in enumerate(pdfs):
-        with open(pdf, 'rb') as fpdf:
-            merger.append(fpdf, bookmark=urls[i][1])  # 这里会占用pdf文件导致删除失败
-            logger.info(u"合并完成第" + str(i) + '个pdf' + pdf)
-    with open("%s.pdf" % file_name, "wb") as output:
-        merger.write(output)
-    logger.info(u"输出PDF成功！")
-    try:
-        for html in htmls:
-            os.remove(html)
-            logger.info(u"删除临时文件"+html)
-        for pdf in pdfs:
-            os.remove(pdf)
-            logger.info(u"删除临时文件"+pdf)
-    except Exception as es:
-        logger.info(es)
-    total_time = time.time() - start
-    logger.info(u"总共耗时：%f 秒" % total_time)
-
-
-if __name__ == '__main__':
-    setup_logging()
-    menus = (
-        #u'秦并天下',
-        #u'楚汉双雄',
-        u'强汉开疆',
-        u'光武中兴',
-        u'三国争霸',
-        u'两晋悲歌',
-    )
-    for menu in menus:
-        download_one(menu)

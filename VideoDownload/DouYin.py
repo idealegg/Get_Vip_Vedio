@@ -198,7 +198,7 @@ def download_one2(input_s):
                 logger.info(videotitle)
                 logger.info(videourl)
                 #start = time.time()
-                logger.info(input_url)
+                logger.info('%s %s' % (input_url, user_info['user_info']['nickname']))
                 logger.info(b'%s ===>downloading' % videotitle.encode('utf8'))
                 try:
                     with requests.get(url=videourl, headers=headers) as req2:
@@ -241,12 +241,96 @@ def download_one(s):
             t += 60 * 5
 
 
+def update_url_name_map(j):
+    f = os.path.join(outdir, 'url_name_map.txt')
+    fd = open(f, 'wb')
+    outs = []
+    for url in shorturls:
+        for k in j:
+            if j[k]['shorturl'][0] == url:
+                outs.append('%s %s %s' % (url, j[k]['name'], j[k]['nickname']))
+                break
+    fd.write('\n'.join(outs).encode('utf8'))
+    fd.close()
+
+
 if __name__ == "__main__":
     setup_logging()
     outdir = r'E:\hzw\DouYin'
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     shorturls = [
+        "RgvHuaA",
+        "RgvQKqY",
+        "RgvCrLB",
+        "Rgvys7j",
+        "RgvxEWf",
+        "RgvQjwk",
+        "Rgv6Lcy",
+        "Rgv9DDL",
+        "RgvQcy7",
+        "Rgvx2x6",
+        "Rgvu5t7",
+        "RgvQxcs",
+        "Rgv4N6r",
+        "Rgv6mRA",
+        "Rgvu9bX",
+        "RgvDDCf",
+        "RgvA5DV",
+        "Rgv5Q1v",
+        "RgvMKmX",
+        "RgvMgcD",
+        "RgvmT6A",
+        "RgvUPJR",
+        "Rgv4uB7",
+        "RgvAJUM",
+        "RgvDnyK",
+        "Rgvm5bo",
+        "RgvkWEX",
+        "Rgvybur",
+        "RgvPDyu",
+        "Rgvj2kj",
+        "RgvXJd9",
+        "RgvXpK1",
+        "RgvBJxB",
+        "RgvxrWk",
+        "Rgvr93A",
+        #"RgvDmYK",
+        #"Rgvh4oV",
+        #"Rgv4mg5",
+        #"RgvkcYj",
+        "RqBKuBa",
+        "RqSNC7u",
+        "RqSd2rx",
+        "RqBchgC",
+        "RqS244T",
+        "RqBcnU9",
+        "RqSLAjT",
+        "RqSdsoV",
+        "RqBoP1m",
+        "RqBcgeP",
+        "RqBTpkh",
+        "RqS62qA",
+        "RqSBHaa",
+        "RqSJokg",
+        "RqSh83E",
+        "RqBEQtt",
+        "RqShErG",
+        "RqBTxRe",
+        "RqSNQet",
+        "RqS2L43",
+        "RqBcDSJ",
+        "RqS86A9",
+        "RqBwfM6",
+        "RqS2RgN",
+        "RqS8vjA",
+        #"RqBwrFF",
+        #"RqS2pEM",
+        "RqSeVRc",
+        "RqSA8H6",
+        "RqSgBYc",
+        "RqSq7kk",
+        "RqSpcnU",
         "RVkk72M",
         "RVkh8L5",
         "RVk89Cs",
@@ -451,11 +535,14 @@ if __name__ == "__main__":
     dup2 = []
     news = []
     dir_uid_map = {}
-    dir_uid_file = os.path.join(outdir, 'user_info.json')
+    user_info_json = 'user_info.json'
+    dir_uid_file = os.path.join(outdir, user_info_json)
     if os.path.isfile(dir_uid_file):
         dir_uid_fd = open(dir_uid_file, 'r')
         dir_uid_map = json.load(dir_uid_fd)
         dir_uid_fd.close()
+    update_url_name_map(dir_uid_map)
+    #exit(0)
     begin_t = time.time()
     for short_url in shorturls:
         if short_url not in checked:
@@ -467,9 +554,10 @@ if __name__ == "__main__":
     dir_uid_fd = open(dir_uid_file, 'w')
     json.dump(dir_uid_map, dir_uid_fd)
     dir_uid_fd.close()
-    logger.info(pprint.pformat(dup1))
-    logger.info(pprint.pformat(dup2))
+    update_url_name_map(dir_uid_map)
     logger.info(pprint.pformat(news))
     logger.info(len(news))
+    logger.info(pprint.pformat(dup1))
+    logger.info(pprint.pformat(dup2))
     end_t = time.time()
     logger.info("time cost: %s seconds" % (end_t - begin_t))
