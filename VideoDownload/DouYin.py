@@ -18,7 +18,7 @@ params = {
     'aid' : '1128',
     '_signature' : 'PtCNCgAAXljWCq93QOKsFT7QjR'
 }
-"""
+
 headers = {
     "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"
 }
@@ -26,10 +26,13 @@ headers = {
 sensitive_words = {
     u'断桥残雪': 'dqcx',
     u'中国医生': 'zgys',
-    u'偷拍': 'tp',
+    u'偷': 'tou',
+    u'露': 'lou',
+    u'车': 'che',
+    u'拍': 'pai',
 }
-MAX_NAME_LEN = 108
-
+MAX_NAME_LEN = 80
+"""
 
 def walk_a_dir(d):
     return [x for x in os.listdir(d) if x.endswith('.mp4')]
@@ -46,10 +49,10 @@ def get_good_name(s, get_file=True):
             elif get_file and res and res[-1] != replace_char:
                 res.append(replace_char)
     ret = ''.join(res).strip('_-')
-    for k in sensitive_words:
-        ret = ret.replace(k, sensitive_words[k])
-    if len(ret) > MAX_NAME_LEN:
-        ret = ret[:MAX_NAME_LEN]
+    for k in conf['sensitive_words']:
+        ret = ret.replace(k, conf['sensitive_words'][k])
+    if len(ret) > conf['MAX_NAME_LEN']:
+        ret = ret[:conf['MAX_NAME_LEN']]
     return ret
 
 
@@ -111,7 +114,7 @@ def download_one2(input_s):
     month = list(range(1, 13))
     input_url = 'https://v.douyin.com/%s/' %  input_s
     logger.info(input_url)
-    req_start_page = requests.get(url=input_url, headers=headers, allow_redirects=False)
+    req_start_page = requests.get(url=input_url, headers=conf['headers'], allow_redirects=False)
     if req_start_page.status_code != 302:
         logger.error('get start page failed! [%s][%s]' % (input_url, req_start_page))
         return
@@ -120,7 +123,7 @@ def download_one2(input_s):
     sec_uid = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
     logger.info(sec_uid)
     req_name = requests.get(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
-                           headers=headers)
+                           headers=conf['headers'])
     if req_name.status_code != 200:
         logger.error('get name failed! [%s][%s]' % (req_name.url, req_name))
         return
@@ -180,7 +183,7 @@ def download_one2(input_s):
                 '_signature': 'PtCNCgAAXljWCq93QOKsFT7QjR'
             }
             list_url = 'https://www.iesdouyin.com/web/api/v2/aweme/post/'
-            req = requests.get(url=list_url, params=params, headers=headers)
+            req = requests.get(url=list_url, params=params, headers=conf['headers'])
             logger.info(req)
             if req.status_code != 200:
                 logger.error("get list error: [%s][%s][%s][%s]" % (name, input_s, list_url, params))
@@ -201,7 +204,7 @@ def download_one2(input_s):
                 logger.info('%s %s' % (input_url, user_info['user_info']['nickname']))
                 logger.info(b'%s ===>downloading' % videotitle.encode('utf8'))
                 try:
-                    with requests.get(url=videourl, headers=headers) as req2:
+                    with requests.get(url=videourl, headers=conf['headers']) as req2:
                         logger.info(req2)
                         if req2.status_code == 200:
                             md5 = hashlib.md5(req2.content).hexdigest()
@@ -242,7 +245,7 @@ def download_one(s):
 
 
 def update_url_name_map(j):
-    f = os.path.join(outdir, 'url_name_map.txt')
+    f = os.path.join(outdir, conf['url_name_map'])
     fd = open(f, 'wb')
     outs = []
     for url in shorturls:
@@ -256,286 +259,20 @@ def update_url_name_map(j):
 
 if __name__ == "__main__":
     setup_logging()
-    outdir = r'E:\hzw\DouYin'
+    jconf = os.path.join('Conf', 'douyin.json')
+    with open(jconf, 'r') as fjconf:
+        conf = json.load(fjconf)
+    outdir = conf['outdir']
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
-    shorturls = [
-        "RgvHuaA",
-        "RgvQKqY",
-        "RgvCrLB",
-        "Rgvys7j",
-        "RgvxEWf",
-        "RgvQjwk",
-        "Rgv6Lcy",
-        "Rgv9DDL",
-        "RgvQcy7",
-        "Rgvx2x6",
-        "Rgvu5t7",
-        "RgvQxcs",
-        "Rgv4N6r",
-        "Rgv6mRA",
-        "Rgvu9bX",
-        "RgvDDCf",
-        "RgvA5DV",
-        "Rgv5Q1v",
-        "RgvMKmX",
-        "RgvMgcD",
-        "RgvmT6A",
-        "RgvUPJR",
-        "Rgv4uB7",
-        "RgvAJUM",
-        "RgvDnyK",
-        "Rgvm5bo",
-        "RgvkWEX",
-        "Rgvybur",
-        "RgvPDyu",
-        "Rgvj2kj",
-        "RgvXJd9",
-        "RgvXpK1",
-        "RgvBJxB",
-        "RgvxrWk",
-        "Rgvr93A",
-        #"RgvDmYK",
-        #"Rgvh4oV",
-        #"Rgv4mg5",
-        #"RgvkcYj",
-        "RqBKuBa",
-        "RqSNC7u",
-        "RqSd2rx",
-        "RqBchgC",
-        "RqS244T",
-        "RqBcnU9",
-        "RqSLAjT",
-        "RqSdsoV",
-        "RqBoP1m",
-        "RqBcgeP",
-        "RqBTpkh",
-        "RqS62qA",
-        "RqSBHaa",
-        "RqSJokg",
-        "RqSh83E",
-        "RqBEQtt",
-        "RqShErG",
-        "RqBTxRe",
-        "RqSNQet",
-        "RqS2L43",
-        "RqBcDSJ",
-        "RqS86A9",
-        "RqBwfM6",
-        "RqS2RgN",
-        "RqS8vjA",
-        #"RqBwrFF",
-        #"RqS2pEM",
-        "RqSeVRc",
-        "RqSA8H6",
-        "RqSgBYc",
-        "RqSq7kk",
-        "RqSpcnU",
-        "RVkk72M",
-        "RVkh8L5",
-        "RVk89Cs",
-        "RVkd6UH",
-        "RVBY8Ne",
-        "RVBDCTn",
-        "RVB6Nkn",
-        "RVBM796",
-        #"RVB8K2G",
-        "RVBJjLp",
-        "RVB2xpN",
-        "RVBkjaw",
-        "RVBNaP3",
-        "RVBjTVY",
-        "RVBk6mA",
-        #"RVBATWa",
-        "RVBAAFe",
-        "RVB6cS1",
-        #'RaxaW6R',
-        #'RaxHDpn',
-        #'RaxfjKB',
-        'RaxBbbG',
-        'RaxFW11',
-        'RaxmCoH',
-        'Rax54AY',
-        'Raxjtmg',
-        'RaxUXeJ',
-        'Raxk3kC',
-        'RaxtXmA',
-        'RaxpMLK',
-    "RfesPp3",
-    "Rfd2n3x",
-    "RfdFLTv",
-    "RfdtdVk",
-    "RfRJQ5U",
-    "RfRJqm1",
-    "RfdwbdX",
-    "Rfd3sSV",
-    #"RfdpAde",
-    "Rfdq5L1",
-    "RfdqWKa",
-    "RfdvCLX",
-    "RfdVYro",
-    "RfdCSDk",
-    "RfdWdAe",
-    "RfRJcX8",
-    "Rfd4M7N",
-    "RfReCE6",
-    "RfdnUVS",
-    "RfRSRMr",
-    'RhnwkwN',
-    'RhW2j6g',
-    'RhWjYvW',
-    'RhW1MSY',
-    'RhWdXaN',
-    'Rh7Ab8R',
-    'Rh765QE',
-    'Rh7uy2P',
-    'Rh74BWN',
-    'Rh7yvqV',
-    'Rh7ySdt',
-    'Rh7MBUW',
-    'Rh7jG5r',
-    'Rh7nAw3',
-    'Rh7vTt3',
-    'Rh7wKqU',
-    'Rh7GVRj',
-    'Rhv1pUt',
-    'Rh7TQQY',
-    'Rh7tWfR',
-    'Rh7GN8h',
-    'Rh7EGmE',
-    'Rh7gUvQ',
-    'Rh7nt9r',
-    'Rhvechf',
-    'RhvdaSW',
-    'Rh77Pvp',
-    'Rh7G7kx',
-    'Rh7KFcx',
-    'Rh7GFw8',
-    'RBKfm4E',
-    'RBKA3Ge',
-    'RBK2nXK',
-    'RBKB9B6',
-    'RBKAGM9',
-    'RBKCK6J',
-    'RBK2Ltf',
-    'RBKpvpe',
-    'RBKVD6q',
-    'RBKnYsM',
-    'RBKv3xb',
-    'RBKGYXP',
-    'RBK7xeo',
-    'RBKWwjp',
-    'RBE1HVY',
-    'RBKt2p6',
-    'RBKvnVJ',
-    'RBKnWhQ',
-    'RBKWPdX',
-    'RBKEwqM',
-    'RBKwFHu',
-    'RBEd9DP',
-    'RBEdQSu',
-    'RBEkWb5',
-    'RBEhBSQ',
-    'RBEhD5p',
-    'RBE2uJA',
-    'RBE6hBe',
-    'RBEULcY',
-    'RBE5UQy',
-    'RBE8jU5',
-    'RBEhV6q',
-    'RBEH6Kw',
-    'RBEaDWY',
-    'RBEFWxj',
-    'RBEjb9Q',
-    'RBE8KPo',
-    'RBENLvA',
-    'RBESPcM',
-    'RBEmbNf',
-    'RBEmxL3',
-    'RBE85aE',
-    'RBEyuRW',
-    'RBE4vXr',
-    'RBE4CJj',
-    #'RBET8HL',
-    'RBE9xXq',
-    'RBEq3GS',
-    'RBE4S8k',
-    'RBEEvE8',
-    'RBEGeek',
-    'RBEsxgN',
-    'RBEsF3Q',
-    'RBEp8jK',
-    #'RBEgng4',
-    'RBEvLK7',
-    'RBEWW7t',
-    'RBE4kfx',
-    'RBE7us1',
-    #'RBEptSn',
-    'RBEvKtY',
-    'RBEELEf',
-    'RBE7FXw',
-    'RU235da',
-    'RU2bFHG',
-    'RU2CHbY',
-    'RU2GUJ8',
-    'RU2GEqU',
-    'RU2HYqn',
-    'RU2HTsf',
-    'RU2QnS5',
-    'RU2xjkx',
-    'RU2p2yx',
-    'RU2npsc',
-    'RU24F19',
-    'RU2aEm4',
-    'RU2HoUg',
-    'RU2bRWT',
-    'RU2TpPH',
-    'RU2ngN8',
-    'RU2ghLf',
-    'RU24noy',
-    'RU2vV1V',
-    'RU29Pwe',
-    'RU2Xa7f',
-    'RU2tbRS',
-    'RU2GTKH',
-    'RU2chuL',
-    'RU2GcFj',
-    'RU2C8ev',
-    'RU2sSro',
-    'RU2cg3m',
-    'RU2uXXE',
-    'RU2vcer',
-    'RU2pGJu',
-    'RU2afF1',
-    'RU2smNa',
-    'RU2C9mw',
-    'RU2VyQw',
-    'RU2anj9',
-    'RU2GbML',
-    'RU2qPfB',
-    'RU2bpoC',
-    'RU2H3HL',
-    'RU2Xmeb',
-    'RyBgY7e',
-    'RyB9gNG',
-    'RyBtGVJ',
-    'RyBAG3r',
-    'RyBAG7w',
-    'RyBG1SP',
-    'RyBU9yB',
-    'RyBaoCY',
-    #'RyByhFm',
-    #'RyBpBha',
-    #'RyBm48U',
-    ]
-    #shorturls = ['Rh7G7kx']
+    shorturls = conf['shorturls']
     checked = set()
     checked2 = {}
     dup1 = []
     dup2 = []
     news = []
     dir_uid_map = {}
-    user_info_json = 'user_info.json'
+    user_info_json = conf['user_info_json']
     dir_uid_file = os.path.join(outdir, user_info_json)
     if os.path.isfile(dir_uid_file):
         dir_uid_fd = open(dir_uid_file, 'r')

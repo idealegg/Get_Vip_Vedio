@@ -111,7 +111,8 @@ venv.bak/
 tmp/*
 !tmp/SomeUsefulInfo
 !tmp/replace_print
+!tmp/lianjia_website_link_rules
 Conf/*
-!Conf/logging.json
+!Conf/*.json
 PdfOut/
 Logs/
