@@ -35,7 +35,7 @@ MAX_NAME_LEN = 80
 """
 
 def walk_a_dir(d):
-    return [x for x in os.listdir(d) if x.endswith('.mp4')]
+    return [x for x in os.listdir(d) if x.endswith('.mp4') or x.endswith('.jpg')]
 
 
 def get_good_name(s, get_file=True):
@@ -94,18 +94,38 @@ def remove_dup(d):
 def reorder(d, stats):
     fs = list(stats.keys())
     fs.sort(key=lambda x: stats[x].st_mtime)
-    for i, f in enumerate(fs):
+    last_num = "-1"
+    i = 0
+    for f in fs:
+        new_num = f[:f.find('_')]
         f2 = re.sub('^\d+_', '', f)
-        f2 = "%s_%s" % (i+1, f2)
+        if last_num != new_num:
+            i += 1
+        f2 = "%s_%s" % (i, f2)
         if f != f2:
             os.rename(os.path.join(d, f), os.path.join(d, f2))
             logger.info("rename in [%s]\n%s\n%s" % (d, f, f2))
+        last_num = new_num
+    return i
 
 def format_year_month(y, m):
     return '%04d-%02d-01 00:00:00' % (y, m)
     
 def string_time_to_msec(s):
     return int(time.mktime(time.strptime(s, "%Y-%m-%d %H:%M:%S")) * 1000)
+
+def get_jpgs(aid, name):
+    vfs = []
+    url = 'https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/?item_ids=%s' % aid
+    r = requests.get(url, headers=conf['headers'])
+    num = 1
+    if r.status_code == 200:
+        j = json.loads(r.content)
+        for item in j['item_list']:
+            for im in item['images']:
+                vfs.append((im['url_list'][0], "%s_%s.jpg" % (name, num)))
+                num += 1
+    return vfs
 
 def download_one2(input_s):
     now_t = time.localtime(time.time())
@@ -151,14 +171,15 @@ def download_one2(input_s):
         #name = may_be_dir[0]
     out_dir_anchor = os.path.join(outdir, name)
     last_time = string_time_to_msec(format_year_month(year[0], month[0]))
-    vn = 0
+    #vn = 0
     if not os.path.exists(out_dir_anchor):
         os.mkdir(out_dir_anchor)
     else:
         logger.info('directory exist')
         #last_time = get_last_time(out_dir_anchor, last_time)
-        vn = len(walk_a_dir(out_dir_anchor))
+        #vn = len(walk_a_dir(out_dir_anchor))
     md5s, stats = remove_dup(out_dir_anchor)
+    vn = reorder(out_dir_anchor, stats)
     if stats:
         last_time = max(max(map(lambda x: x.st_mtime * 1000, stats.values())), last_time)
     time_pool = [format_year_month(x, y) for x in year for y in month]
@@ -203,21 +224,28 @@ def download_one2(input_s):
                 #start = time.time()
                 logger.info('%s %s' % (input_url, user_info['user_info']['nickname']))
                 logger.info(b'%s ===>downloading' % videotitle.encode('utf8'))
+                vfs =[]
+                if not data['aweme_list'][i]['video']['vid'].strip():
+                    vfs = get_jpgs(data['aweme_list'][i]['aweme_id'], "%s_%s" % (vn, videotitle))
+                    #vfs.append((data['aweme_list'][i]['video']['cover']['url_list'][0], '%s_%s_cover.jpg' % (vn, videotitle)))
+                    #vfs.append((data['aweme_list'][i]['video']['origin_cover']['url_list'][0], '%s_%s_origin_cover.jpg' % (vn, videotitle)))
+                else:
+                    vfs.append((videourl, '%s_%s.mp4' % (vn, videotitle)))
                 try:
-                    with requests.get(url=videourl, headers=conf['headers']) as req2:
-                        logger.info(req2)
-                        if req2.status_code == 200:
-                            md5 = hashlib.md5(req2.content).hexdigest()
-                            if md5 not in md5s:
-                                vn += 1
-                                vf = '%s_%s.mp4' % (vn, videotitle)
-                                vfile = os.path.join(out_dir_anchor, vf)
-                                with open(vfile, 'wb') as v:
-                                    v.write(req2.content)
-                                md5s[md5] = vf
-                                news.append(vfile)
-                            else:
-                                logger.warning("skip same file [%s][%s]"%(md5s[md5], md5))
+                    for vf in vfs:
+                        with requests.get(url=vf[0], headers=conf['headers']) as req2:
+                            logger.info(req2)
+                            if req2.status_code == 200:
+                                md5 = hashlib.md5(req2.content).hexdigest()
+                                if md5 not in md5s:
+                                    vfile = os.path.join(out_dir_anchor, vf[1])
+                                    with open(vfile, 'wb') as v:
+                                        v.write(req2.content)
+                                    md5s[md5] = vf[1]
+                                    news.append(vfile)
+                                else:
+                                    logger.warning("skip same file [%s][%s]"%(md5s[md5], md5))
+                    vn += 1
                 except Exception as e:
                     logger.error('download error: %s' % e)
                     logger.error(traceback.format_exc())
@@ -298,3 +326,4 @@ if __name__ == "__main__":
     logger.info(pprint.pformat(dup2))
     end_t = time.time()
     logger.info("time cost: %s seconds" % (end_t - begin_t))
+    # R73yr2q

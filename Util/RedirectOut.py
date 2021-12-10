@@ -14,7 +14,8 @@ class __redirection__:
 
     def write(self, output_stream):
         sys.__stdout__.write(output_stream)
-        if type(output_stream) is not unicode:
+        #if type(output_stream) is not unicode: # py2
+        if isinstance(output_stream, bytes):
           self.fd.write(output_stream.decode(chardet.detect(output_stream)['encoding']).encode('utf-8'))
         else:
           self.fd.write(output_stream.encode('utf-8'))
@@ -34,12 +35,12 @@ class __redirection__:
 def test():
   robj=__redirection__('out.log')
   # get output stream
-  print 'hello'
-  print 'there'
+  print('hello')
+  print('there')
   del robj
 
 
 if __name__=="__main__":
     # redirection
     test()
-    print "123"
+    print("123")
