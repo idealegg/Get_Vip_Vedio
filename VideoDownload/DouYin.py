@@ -70,6 +70,15 @@ class DouYin:
         return [x for x in os.listdir(d) if x.endswith('.mp4') or x.endswith('.jpg')]
 
     def get_good_name(self, s, get_file=True):
+        '''⒈CJK扩充集A 3400→4DB5
+        ⒉康熙字典214部首 2F00→2FD5
+        ⒊CJK部首扩充 2E80→2EF3
+        ⒋汉字结构符 2FF0→2FF8
+        ⒌藏文 0F00→0FCF
+        ⒍彝文 A000→A4C6
+        ⒎蒙文 1800→18A9
+        8. CJK Unified Ideographs  4E00→9FA5
+        '''
         replace_char = '-'
         res = []
         if not get_file:
@@ -301,6 +310,7 @@ class DouYin:
                             #vfs.append((data['aweme_list'][i]['video']['origin_cover']['url_list'][0], '%s_%s_origin_cover.jpg' % (vn, videotitle)))
                         else:
                             vfs.append((videourl, '%s_%s.mp4' % (vn, videotitle)))
+                        skipped = True
                         for vf in vfs:
                             with requests.get(url=vf[0], headers=self.conf['headers']) as req2:
                                 logger.info(req2)
@@ -312,9 +322,11 @@ class DouYin:
                                             v.write(req2.content)
                                         md5s[md5] = vf[1]
                                         self.news.append(vfile)
+                                        skipped = False
                                     else:
                                         logger.warning("skip same file [%s][%s]"%(md5s[md5], md5))
-                        vn += 1
+                        if not skipped:
+                            vn += 1
                     except Exception as e:
                         logger.error('download error: %s' % e)
                         logger.error(traceback.format_exc())

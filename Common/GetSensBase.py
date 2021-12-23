@@ -71,7 +71,7 @@ class GetSensBase(threading.Thread):
     while retry > 0:
       try:
         req = self.req_session.get(url, **kwargs)
-      except Exception, e:
+      except Exception as e:
         logger.info("Exception in req [%s]: %s" % (url, e))
       finally:
         retry -= 1
