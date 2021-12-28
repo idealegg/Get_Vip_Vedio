@@ -142,7 +142,7 @@ def generate_youku_file(gsb, i=0, force=False, read_json=False):
       if stream == stream_type[0]:
         break
       index += 1
-  except KeyError, e:
+  except KeyError as e:
     index = -1
     print("KeyError: %s" % e.message)
     pass

@@ -13,5 +13,7 @@ setup_logging()
 
 logger.info(pprint.pformat(may_be_dir))
 
+\bprint\s*(".*?")?([^#\n]*)
+print($1$2)
 
 ^(.*?): (.*?)$   "$1": "$2",
