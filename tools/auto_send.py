@@ -3,14 +3,32 @@ from pywinauto.application import Application
 import time
 from apscheduler.schedulers.blocking import BlockingScheduler
 import sys
+import keyboard
+from pywinauto import mouse
+import pyperclip
 
 
-def auto_send(session='...', word='hi', send=False):
+def input_passwd():
+    keyboard.send('enter')
+    time.sleep(2)
+    print(u"查找app WeChatMainWndForPC")
+    app = Application(backend='uia').connect(class_name="WeChatMainWndForPC")
+    w = app.window(class_name='WeChatMainWndForPC')
+    input_c = w.child_window(control_type='Edit', title='输入')
+    input_c.set_edit_text('')
+    #keyboard.write('')
+    keyboard.send('enter')
+    time.sleep(2)
+
+def lock_win():
+    keyboard.send('alt+l')
+
+def auto_send2(session='...', word='hi', send=False):
     print(u"查找app WeChatMainWndForPC")
     app = Application(backend='uia').connect(class_name="WeChatMainWndForPC")
     print(u"查找window WeChatMainWndForPC")
     w = app.window(class_name='WeChatMainWndForPC')
-    if not w.is_normal():
+    if 1: #not w.is_normal():
         print(u"restore window WeChatMainWndForPC")
         w.restore()
     #w = app.top_window()
@@ -58,13 +76,61 @@ def auto_send(session='...', word='hi', send=False):
     print(u"输入 输入(Edit)")
     input_c.type_keys(word)
 
-def do_work():
-    auto_send('Tower HMI Team', u'不发烧，不咳嗽，不生病，一切正常', True)
+def move_up_down(steps, c):
+    if steps > 0:
+        for i in range(steps):
+            c.send_keystrokes('{DOWN}')
+    else:
+        for i in range(-steps):
+            c.send_keystrokes('{UP}')
+
+
+def to_paste():
+    session = 'Tower HMI Team'
+    word = u'不发烧，不咳嗽，不生病，一切正常'
+    print(u"查找app WeChatMainWndForPC")
+    app = Application(backend='uia').connect(class_name="WeChatMainWndForPC")
+    app_win32 = Application(backend='win32').connect(class_name="WeChatMainWndForPC")
+    print(u"查找window WeChatMainWndForPC")
+    w = app.window(class_name='WeChatMainWndForPC')
+    w_win32 = app_win32.window(class_name='WeChatMainWndForPC')
+    print(u"restore window WeChatMainWndForPC")
+    w.restore()
+    print(u"等待 window to be ready")
+    w.wait('ready', timeout=timeout)
+    chat_list = w.child_window(control_type='List', title='会话')
+    print(u"等待 搜索结果(List) to be ready")
+    #chat_list.wait('exists ready', timeout=timeout)
+    chat_list.scroll('up', 'page', 20)
+    chat_list.wait('exists visible', timeout=timeout)
+    #c=chat_list.items()[2]
+    print(u"查找 条目: %s" % session)
+    print("length of chat list: %s" % len(chat_list.items()))
+    move_up_down(-200, w_win32)
+    #chat_list.wait('exists visible', timeout=timeout)
+    while not list(filter(lambda x: (x.window_text() == session) and x.is_selected(), chat_list.items())):
+            move_up_down(1, w_win32)
+            #chat_list.wait('exists visible', timeout=timeout)
+    print(u"查找 输入(Edit)")
+    input_c = w.child_window(control_type='Edit', title='输入')
+    print(u"等待 输入(Edit) to be ready")
+    input_c.wait('exists ready', timeout=timeout)
+    input_c.set_focus()
+    print(u"输入 输入(Edit)")
+    w_win32.send_chars(word) #因为要输入密码，所以不接受中文。
+
+
+def to_send():
+    app_win32 = Application(backend='win32').connect(class_name="WeChatMainWndForPC")
+    w_win32 = app_win32.window(class_name='WeChatMainWndForPC')
+    w_win32.send_keystrokes('%S')
 
 
 if __name__ == "__main__":
     timeout = 30
-    #auto_send('Tower HMI Team', u'不发烧，不咳嗽，不生病，一切正常')
+    #to_paste()
+    #to_send()
     scheduler = BlockingScheduler()
-    scheduler.add_job(do_work, 'cron', hour=20, minute=30)
+    scheduler.add_job(to_paste, 'cron', hour=18, minute=0)
+    scheduler.add_job(to_send, 'cron', hour=20, minute=0)
     scheduler.start()
