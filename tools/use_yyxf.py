@@ -80,13 +80,14 @@ class Yyxf:
             keyboard.send('up+enter')
             rate = self.p2p.child_window(control_type='Text', title_re='.*%').window_text()
             self.indir = self.p2p.children(control_type='Edit')[-1].iface_value.CurrentValue
-            print("[%s][%s]" % (self.name, rate))
+            print("[%s/%s][%s][%s][%s]" % (self.pos, self.tasks, self.rpos, self.name, rate))
             self.maps[self.name] = rate
             self.p2p.close()
             if rate == '100%'or rate == '100.0%':
                 self.stop_download()
                 self.move_f()
                 self.delete_f()
+                self.pos += 1
             else:
                 self.add_pos()
         pprint.pprint(self.maps)
