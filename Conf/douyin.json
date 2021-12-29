@@ -3,7 +3,7 @@
   "check_all": false,
   "outdir": "E:\\hzw\\DouYin",
   "run_scheduler": true,
-  "run_immediate": true,
+  "run_immediate": false,
   "shorturls": [
    "8dd2avd",
    "8ddj8tN",
