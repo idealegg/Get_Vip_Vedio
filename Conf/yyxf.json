@@ -1,0 +1,9 @@
+{"main_win_class":"xfplayMainWnd",
+  "list_win_class":"AfxWnd140su",
+  "item_class":"xfplayMainWnd",
+  "prop_win_title": "P2P网络属性",
+  "delete_dialog_title": "删除文件",
+  "outdir":"G:\\hzw\\2021-12",
+  "indir":"D:\\xfmovie"
+
+}
