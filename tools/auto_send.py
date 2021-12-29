@@ -85,8 +85,10 @@ def move_up_down(steps, c):
             c.send_keystrokes('{UP}')
 
 
-def to_paste():
+def to_send():
     session = 'Tower HMI Team'
+    if debug:
+        session = '...'
     word = u'不发烧，不咳嗽，不生病，一切正常'
     print(u"查找app WeChatMainWndForPC")
     app = Application(backend='uia').connect(class_name="WeChatMainWndForPC")
@@ -94,14 +96,14 @@ def to_paste():
     print(u"查找window WeChatMainWndForPC")
     w = app.window(class_name='WeChatMainWndForPC')
     w_win32 = app_win32.window(class_name='WeChatMainWndForPC')
-    print(u"restore window WeChatMainWndForPC")
-    w.restore()
+    #print(u"restore window WeChatMainWndForPC")
+    #w.restore()
     print(u"等待 window to be ready")
     w.wait('ready', timeout=timeout)
     chat_list = w.child_window(control_type='List', title='会话')
     print(u"等待 搜索结果(List) to be ready")
     #chat_list.wait('exists ready', timeout=timeout)
-    chat_list.scroll('up', 'page', 20)
+    #chat_list.scroll('up', 'page', 20)
     chat_list.wait('exists visible', timeout=timeout)
     #c=chat_list.items()[2]
     print(u"查找 条目: %s" % session)
@@ -115,22 +117,19 @@ def to_paste():
     input_c = w.child_window(control_type='Edit', title='输入')
     print(u"等待 输入(Edit) to be ready")
     input_c.wait('exists ready', timeout=timeout)
-    input_c.set_focus()
+    while not input_c.has_keyboard_focus(): # 需要获取键盘焦点
+        w_win32.send_keystrokes('{TAB}')
     print(u"输入 输入(Edit)")
-    w_win32.send_chars(word) #因为要输入密码，所以不接受中文。
-
-
-def to_send():
-    app_win32 = Application(backend='win32').connect(class_name="WeChatMainWndForPC")
-    w_win32 = app_win32.window(class_name='WeChatMainWndForPC')
+    w_win32.send_chars(word)
     w_win32.send_keystrokes('%S')
+    if debug:
+        input_c.click_input()
 
 
 if __name__ == "__main__":
-    timeout = 30
-    #to_paste()
+    timeout = 10
+    debug = False
     #to_send()
     scheduler = BlockingScheduler()
-    scheduler.add_job(to_paste, 'cron', hour=18, minute=0)
-    scheduler.add_job(to_send, 'cron', hour=20, minute=0)
+    scheduler.add_job(to_send, 'cron', hour=20, minute=0, second=0)
     scheduler.start()
