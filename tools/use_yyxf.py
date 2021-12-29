@@ -68,20 +68,6 @@ class Yyxf:
                 break
         print(self.indir)
 
-    def get_indir(self):
-        print(u"get_indir")
-        self.w2.click_input(coords=self.get_rpos())
-        self.w2.right_click_input(coords=self.get_rpos())
-        keyboard.send('up+enter')
-        for i, ch in enumerate(self.p2p.children()):
-            #print("[%s][%s][%s]" % (i, ch.window_text(), ch.friendly_class_name()))
-            if ch.friendly_class_name() == "Edit":
-                #print(ch.iface_value.CurrentValue)
-                self.indir = ch.iface_value.CurrentValue
-        self.p2p.close()
-        print(self.indir)
-
-
     def check(self):
         self.init()
         while self.pos < self.tasks:
@@ -93,12 +79,12 @@ class Yyxf:
             time.sleep(0.1)
             keyboard.send('up+enter')
             rate = self.p2p.child_window(control_type='Text', title_re='.*%').window_text()
+            self.indir = self.p2p.children(control_type='Edit')[-1].iface_value.CurrentValue
             print("[%s][%s]" % (self.name, rate))
             self.maps[self.name] = rate
             self.p2p.close()
             if rate == '100%'or rate == '100.0%':
                 self.stop_download()
-                self.get_indir()
                 self.move_f()
                 self.delete_f()
             else:
