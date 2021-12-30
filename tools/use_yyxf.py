@@ -17,7 +17,7 @@ class Yyxf:
         f = open(self.jconf_p, 'rb')
         self.conf = json.load(f)
         self.outdir = self.conf['outdir']
-        self.indir = self.conf['indir']
+        #self.indir = self.conf['indir']
         self.main_win_class = self.conf['main_win_class']
         self.list_win_class = self.conf['list_win_class']
         self.item_class = self.conf['item_class']
@@ -50,43 +50,44 @@ class Yyxf:
 
     def get_tasks(self):
         print(u"get_tasks")
-        self.w2.click_input(coords=self.get_pos())
-        self.w2.right_click_input()
+        self.w2.click_input(coords=self.get_rpos())
+        self.w2.right_click_input(coords=self.get_rpos())
         keyboard.send('up+enter')
         finish = False
-        for ch in self.p2p.children():
-            print(ch.window_text())
-            if ch.window_text() == u'活动任务:':
+        for i, ch in enumerate(self.p2p.children()):
+            #print("[%s][%s][%s]" % (i, ch.window_text(), ch.friendly_class_name()))
+            if ch.friendly_class_name() == "Edit":
+                #print(ch.iface_value)
+                self.indir = ch.iface_value.CurrentValue
+            elif ch.window_text() == u'活动任务:':
                 print("get it!")
                 finish = True
             elif finish:
                 self.tasks = int(ch.window_text())
                 self.p2p.close()
                 break
-
+        print(self.indir)
 
     def check(self):
         self.init()
         while self.pos < self.tasks:
             mouse.move(self.get_pos())
             self.w2.click_input(coords=self.get_rpos())
-            if self.name == self.w2.window_text():
-                self.add_pos()
-                mouse.move(self.get_pos())
-                self.w2.click_input(coords=self.get_rpos())
             self.name = self.w2.window_text()
             self.adjust_pos_after_click()
             self.w2.right_click_input(coords=self.get_rpos())
             time.sleep(0.1)
             keyboard.send('up+enter')
             rate = self.p2p.child_window(control_type='Text', title_re='.*%').window_text()
-            print("[%s][%s]" % (self.name, rate))
+            self.indir = self.p2p.children(control_type='Edit')[-1].iface_value.CurrentValue
+            print("[%s/%s][%s][%s][%s]" % (self.pos, self.tasks, self.rpos, self.name, rate))
             self.maps[self.name] = rate
             self.p2p.close()
             if rate == '100%'or rate == '100.0%':
                 self.stop_download()
                 self.move_f()
                 self.delete_f()
+                self.pos += 1
             else:
                 self.add_pos()
         pprint.pprint(self.maps)
@@ -147,4 +148,4 @@ if __name__ == "__main__":
     #while True:
     if 1:
         yyxf.check()
-        time.sleep(60)
+        #time.sleep(60)
