@@ -96,8 +96,9 @@ def to_send():
     print(u"查找window WeChatMainWndForPC")
     w = app.window(class_name='WeChatMainWndForPC')
     w_win32 = app_win32.window(class_name='WeChatMainWndForPC')
-    #print(u"restore window WeChatMainWndForPC")
-    #w.restore()
+    print(u"restore window WeChatMainWndForPC")
+    if not w.is_normal():
+        w.restore()
     print(u"等待 window to be ready")
     w.wait('ready', timeout=timeout)
     chat_list = w.child_window(control_type='List', title='会话')
