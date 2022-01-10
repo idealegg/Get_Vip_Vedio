@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 from pywinauto.application import Application
-import time
 from apscheduler.schedulers.blocking import BlockingScheduler
 import keyboard
 from Util.myLogging import *
+import ctypes, sys, os, time
 
 
 def input_passwd():
@@ -84,6 +84,7 @@ def move_up_down(steps, c):
 
 
 def to_send():
+    stop_eurocatt()
     session = 'Tower HMI Team'
     if debug:
         session = '...'
@@ -125,6 +126,24 @@ def to_send():
         input_c.click_input()
 
 
+def start_todesk():
+    os.system(r"C:\Users\newer\Downloads\ToDesk_Lite.exe")
+
+def stop_process(proc):
+    # 以管理员权限运行"
+    cmd = "taskkill /im %s /f" % proc
+    if ctypes.windll.shell32.IsUserAnAdmin():
+        os.system(cmd)
+    else:
+        if sys.version_info[0] == 3:
+            ctypes.windll.shell32.ShellExecuteW(None, u"runas", u'cmd.exe', '/C "%s"' % cmd, None, 1)
+
+def stop_todesk():
+    stop_process('ToDesk_Lite.exe')
+
+def stop_eurocatt():
+    stop_process('EurocatT.exe')
+
 if __name__ == "__main__":
     setup_logging()
     timeout = 10
@@ -137,4 +156,6 @@ if __name__ == "__main__":
     }
     scheduler = BlockingScheduler(job_defaults=job_defaults, timezone='Asia/Shanghai')
     scheduler.add_job(to_send, 'cron', hour=19, minute=30)
+    scheduler.add_job(start_todesk, 'cron', hour=20, minute=30)
+    scheduler.add_job(stop_todesk, 'cron', day_of_week='0-4', hour=8, minute=30)
     scheduler.start()
