@@ -4,6 +4,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import keyboard
 from Util.myLogging import *
 import ctypes, sys, os, time
+import psutil
 
 
 def input_passwd():
@@ -83,8 +84,15 @@ def move_up_down(steps, c):
             c.send_keystrokes('{UP}')
 
 
+def start_wechat():
+    if all(map(lambda x: x.name() != 'WeChat.exe', psutil.process_iter())):
+        os.system(r'E:\Program Files (x86)\Tencent\WeChat\WeChat.exe')
+        time.sleep(5)
+
+
 def to_send():
     stop_eurocatt()
+    start_wechat()
     session = 'Tower HMI Team'
     if debug:
         session = '...'
@@ -96,15 +104,14 @@ def to_send():
     w = app.window(class_name='WeChatMainWndForPC')
     w_win32 = app_win32.window(class_name='WeChatMainWndForPC')
     logger.info(u"restore window WeChatMainWndForPC")
-    if not w.is_normal():
-        w.restore()
+    w.restore()
     logger.info(u"等待 window to be ready")
     w.wait('ready', timeout=timeout)
     chat_list = w.child_window(control_type='List', title='会话')
     logger.info(u"等待 搜索结果(List) to be ready")
     #chat_list.wait('exists ready', timeout=timeout)
     #chat_list.scroll('up', 'page', 20)
-    chat_list.wait('exists visible', timeout=timeout)
+    #chat_list.wait('exists visible', timeout=timeout)
     #c=chat_list.items()[2]
     logger.info(u"查找 条目: %s" % session)
     logger.info("length of chat list: %s" % len(chat_list.items()))
@@ -116,7 +123,7 @@ def to_send():
     logger.info(u"查找 输入(Edit)")
     input_c = w.child_window(control_type='Edit', title='输入')
     logger.info(u"等待 输入(Edit) to be ready")
-    input_c.wait('exists ready', timeout=timeout)
+    #input_c.wait('exists ready', timeout=timeout)
     while not input_c.has_keyboard_focus(): # 需要获取键盘焦点
         w_win32.send_keystrokes('{TAB}')
     logger.info(u"输入 输入(Edit)")
