@@ -115,14 +115,17 @@ def to_send():
     #c=chat_list.items()[2]
     logger.info(u"查找 条目: %s" % session)
     logger.info("length of chat list: %s" % len(chat_list.items()))
-    move_up_down(-200, w_win32)
+    logger.info(u"查找 输入(Edit)")
+    input_c = w.child_window(control_type='Edit', title='输入')
+    while not input_c.has_keyboard_focus():  # 需要获取键盘焦点
+        w_win32.send_keystrokes('{TAB}')
+    while not list(filter(lambda x: (x.window_text() == '大情人') and x.is_selected(), chat_list.items())):
+        move_up_down(-1, w_win32)
     #chat_list.wait('exists visible', timeout=timeout)
     while not list(filter(lambda x: (x.window_text() == session) and x.is_selected(), chat_list.items())):
             move_up_down(1, w_win32)
             #chat_list.wait('exists visible', timeout=timeout)
-    logger.info(u"查找 输入(Edit)")
-    input_c = w.child_window(control_type='Edit', title='输入')
-    logger.info(u"等待 输入(Edit) to be ready")
+    #logger.info(u"等待 输入(Edit) to be ready")
     #input_c.wait('exists ready', timeout=timeout)
     while not input_c.has_keyboard_focus(): # 需要获取键盘焦点
         w_win32.send_keystrokes('{TAB}')
@@ -155,7 +158,12 @@ if __name__ == "__main__":
     setup_logging()
     timeout = 10
     debug = False
-    #to_send()
+    if debug:
+        user32 = ctypes.windll.LoadLibrary('user32.dll')
+        user32.LockWorkStation()
+        time.sleep(4)
+        to_send()
+        exit(0)
     job_defaults = {
         'coalesce': False,
         'max_instances': 3,
@@ -164,5 +172,5 @@ if __name__ == "__main__":
     scheduler = BlockingScheduler(job_defaults=job_defaults, timezone='Asia/Shanghai')
     scheduler.add_job(to_send, 'cron', hour=19, minute=30)
     scheduler.add_job(start_todesk, 'cron', hour=20, minute=30)
-    scheduler.add_job(stop_todesk, 'cron', day_of_week='0-4', hour=8, minute=30)
+    #scheduler.add_job(stop_todesk, 'cron', day_of_week='0-4', hour=8, minute=30)
     scheduler.start()
