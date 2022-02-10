@@ -86,7 +86,16 @@ def move_up_down(steps, c):
 
 def start_wechat():
     if all(map(lambda x: x.name() != 'WeChat.exe', psutil.process_iter())):
-        os.system(r'E:\Program Files (x86)\Tencent\WeChat\WeChat.exe')
+        os.system(r'start "startwechat" "E:\Program Files (x86)\Tencent\WeChat\WeChat.exe"')
+        time.sleep(5)
+        app = Application(backend='uia').connect(class_name="WeChatLoginWndForPC")
+        app_win32 = Application(backend='win32').connect(class_name="WeChatLoginWndForPC")
+        w = app.window(class_name='WeChatLoginWndForPC')
+        w_win32 = app_win32.window(class_name='WeChatLoginWndForPC')
+        enter_bt = w.child_window(control_type='Button', title='进入微信')
+        while not enter_bt.has_keyboard_focus():  # 需要获取键盘焦点
+            w_win32.send_keystrokes('{TAB}')
+        w_win32.send_keystrokes('~')
         time.sleep(5)
 
 
