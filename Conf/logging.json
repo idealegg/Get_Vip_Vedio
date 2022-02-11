@@ -19,7 +19,7 @@
             "formatter":"simple",
             "filename":"Logs/info.log",
             "maxBytes":20971520,
-            "backupCount":2,
+            "backupCount":0,
             "encoding":"utf8"
         },
         "error_file_handler":{
@@ -28,7 +28,7 @@
             "formatter":"simple",
             "filename":"Logs/errors.log",
             "maxBytes":10485760,
-            "backupCount":20,
+            "backupCount":0,
             "encoding":"utf8"
         }
     },

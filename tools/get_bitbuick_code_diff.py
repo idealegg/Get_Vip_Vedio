@@ -11,7 +11,7 @@ headers = {
 "Cache-Control": "no-cache",
 "Connection": "keep-alive",
 "Content-Type": "application/json",
-"Cookie": "_atl_bitbucket_remember_me=YTQxNWE5Y2I5Yjk0NmNjY2M2YzNhNzIwZjQ4ZDE0NDJkYjg1MGQ4NzoyMTYwYTU4YjQ3MjgyNmI5YjA4YmRkNjU4OWJjZDk2MDk4NjExZjAy; BITBUCKETSESSIONID=36C5BD072043EFC30E5BF443BFAF079D",
+"Cookie": "_atl_bitbucket_remember_me=NGFjZGE1MDQwMzI2ZDMzZDU4OTRmYzRkZjBjMGRlNTIyMTc2NGM0YjpmNDRjMTg1ZjdlZDkxYTc0ZGQxY2RkMTQxYTE3NDJjN2YzZTdhMDgy; BITBUCKETSESSIONID=80E11095339E1426FCE1AB21DEFFF96E",
 "Host": "172.17.118.204:7990",
 "Pragma": "no-cache",
 "Referer": "http://172.17.118.204:7990/projects/TTWSRC/repos/fdp/pull-requests/69/diff",
@@ -151,8 +151,8 @@ if __name__ == "__main__":
         main(inlist)
     else:
         inlist = [
-            ('applications', 208),
-            ('ttwconf', 156),
+            ('applications', 239),
+            ('ttwconf', 186),
         ]
         for csci, reqid in inlist:
             get_file_list(csci, reqid)

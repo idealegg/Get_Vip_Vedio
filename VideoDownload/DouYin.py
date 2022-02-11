@@ -392,6 +392,12 @@ if __name__ == "__main__":
     if dy.conf['run_immediate']:
         dy.do_work()
     if dy.conf['run_scheduler']:
-        scheduler = BlockingScheduler()
-        scheduler.add_job(dy.do_work, 'cron', hour=23, minute=50)
+        job_defaults = {
+            'coalesce': False,
+            'max_instances': 3,
+            'misfire_grace_time': 600
+        }
+        scheduler = BlockingScheduler(job_defaults=job_defaults, timezone='Asia/Shanghai')
+        job = scheduler.add_job(dy.do_work, 'cron', hour=23, minute=50)
+        #scheduler.modify_job(job.id, misfire_grace_time=600)
         scheduler.start()

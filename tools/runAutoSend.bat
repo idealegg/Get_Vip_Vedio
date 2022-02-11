@@ -1,0 +1,1 @@
+set PYTHONPATH=.;%PYTHONPATH%  && E:\Python38\python.exe tools\auto_send.py

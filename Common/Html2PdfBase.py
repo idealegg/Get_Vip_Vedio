@@ -35,6 +35,7 @@ class Html2PdfBase(threading.Thread):
         'concat_from_right': False,
         'html_encoding': None,
         'save_encoding': 'utf-8',
+        'cookies': {},
         'wk_exe': r'E:\wkhtmltopdf\bin\wkhtmltopdf.exe',
         'wk_options': {
                         'enable-local-file-access': None,
