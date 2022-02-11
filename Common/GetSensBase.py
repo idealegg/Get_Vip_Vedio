@@ -128,7 +128,7 @@ class GetSensBase(threading.Thread):
     ret = None
     while not ret:
       self.session_lock.acquire()
-      t1 = filter(lambda x: not x, self.session_used)
+      t1 = list(filter(lambda x: not x, self.session_used))
       if t1:
         i = self.session_used.index(t1[0])
         self.session_used[i] = True
@@ -247,7 +247,7 @@ class GetSensBase(threading.Thread):
   @classmethod
   def parse_sen_from_line(cls, line):
     line = line.strip()
-    if line and not line.startswith('#'):
+    if line and not line.startswith(b'#'):
       logger.info(chardet.detect(line))
       line2 = line.decode('utf-8')
       fields = re.split("\s+", line2)
@@ -334,10 +334,11 @@ class GetSensBase(threading.Thread):
 
   @classmethod
   def concat_url(cls, url, path):
-    if not path.startswith('/'):
-      return "%s/%s" % (url[:url.rfind('/')], path)
-    else:
-      return "%s%s" % (url[:url[9:].find('/') + 9], path)
+    if not path.startswith('http'):
+      if not path.startswith('/'):
+        return "%s/%s" % (url[:url.rfind('/')], path)
+      else:
+        return "%s%s" % (url[:url[9:].find('/') + 9], path)
 
   def get_not_download(self):
     res = self.get_urls_from_m3u8()

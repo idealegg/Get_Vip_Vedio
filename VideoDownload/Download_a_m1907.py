@@ -7,7 +7,7 @@ from Util.myLogging import *
 
 path_coding = 'ISO-8859-1'
 file_coding = 'Windows-1252'
-KEY_PATTERN = re.compile('#EXT-X-KEY\s*:\s*METHOD\s*=\s*([^,]+?),\s*URI\s*=\s*"([^"]+?)"')
+KEY_PATTERN = re.compile(b'#EXT-X-KEY\s*:\s*METHOD\s*=\s*([^,]+?),\s*URI\s*=\s*"([^"]+?)"')
 
 
 def generate_m1907_file(gsb, i=0, force=False):
@@ -57,12 +57,14 @@ def check_key(con, uri_dir):
 
 def generate_a_new_sen(gsb, force=False):
   if force or not os.path.isfile(gsb.conf['sen_info_path']) or not gsb.is_sen_exist():
-    f_m1907 = open(gsb.conf['m1907_info_path'])
+    f_m1907 = open(gsb.conf['m1907_info_path'], 'rb')
     j = json.load(f_m1907)
     f_m1907.close()
     outs = []
     error = False
     if 'data' in j:
+      f_cctv5 = open(gsb.conf['sen_info_path'], 'r+b')
+      outs.extend(f_cctv5.read().decode('utf8').split('\n'))
       for season in j['data']:
         for e in season['source']['eps']:
           logger.info("e['url']: %s" % e['url'])
@@ -72,7 +74,12 @@ def generate_a_new_sen(gsb, force=False):
           #req = requests.get(e['url'])
           req = gsb.get_req(e['url'])
           logger.info("req: %s" % req.content)
-          if req.content.count('.ts'):
+          if req.content.count(b'.ts'):
+            if gsb.conf['direct_download_m3u8']:
+              cmd = '"G:\Program Files (x86)\FormatFactory\ffmpeg.exe" -i "%s" -c copy %s' % (e['url'], os.path.join(gsb.target_dir, "%s.mp4" % (season['name'] + e['name'])))
+              print(cmd)
+              ret = os.system(cmd)
+              return ret == 0
             i = gsb.get_base_sen_id()
             m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
             f_m3u8 = open(m3u8, 'wb')
@@ -81,14 +88,20 @@ def generate_a_new_sen(gsb, force=False):
             uri_dir = e['url'][:e['url'].rfind('/') + 1]
             outs.append("%d %s %s %s %s" % (i, m3u8, season['name'] + e['name'], uri_dir, check_key(req.content, uri_dir)))
           else:
-            for line in req.content.split('\n'):
-              if not line.startswith("#"):
-                url = GetSensBase.concat_url(e['url'], line)
+            for line in req.content.split(b'\n'):
+              if not line.startswith(b"#"):
+                url = GetSensBase.concat_url(e['url'], line.decode('utf8'))
                 logger.info("url: %s" % url)
                 #req2 = requests.get(url)
                 req2 = gsb.get_req(url)
                 logger.info("req2: %s" % req2)
                 if req2:
+                  if gsb.conf['direct_download_m3u8']:
+                    cmd = '"G:\Program Files (x86)\FormatFactory\ffmpeg.exe" -i "%s" -c copy %s' % (
+                    e['url'], os.path.join(gsb.target_dir, "%s.mp4" % (season['name'] + e['name'])))
+                    print(cmd)
+                    ret = os.system(cmd)
+                    return ret == 0
                   i = gsb.get_base_sen_id()
                   m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
                   f_m3u8 = open(m3u8, 'wb')
@@ -100,7 +113,7 @@ def generate_a_new_sen(gsb, force=False):
                 else:
                   error = True
                 break
-          logger.info("\n".join(outs).encode('utf8')+"\n")
+          logger.info("\n".join(outs).encode('utf8')+b"\n")
           req.close()
           if error:
             break
@@ -108,8 +121,7 @@ def generate_a_new_sen(gsb, force=False):
         break
       logger.info("outs: %s " % outs)
       #f_cctv5 = open(gsb.conf['sen_info_path'], 'w')
-      f_cctv5 = open(gsb.conf['sen_info_path'], 'a')
-      f_cctv5.write("\n"+"\n".join(outs).encode('utf8')+"\n")
+      f_cctv5.write("\n".join(outs).encode('utf8'))
       f_cctv5.close()
     else:
       logger.info("no data in content!")
@@ -132,12 +144,13 @@ def a():
 if __name__ == "__main__":
   setup_logging()
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  conf={'base_dir': r'E:\hzw',
+  conf={'base_dir': r'G:\hzw',
+        'direct_download_m3u8': False,
                          'check_downloaded_retry': 5,
                          'session_number': 4,
                          'threading_num': 6,
                          'wait_session_sleep_time': 0.1,
-                         'sen_field_name': ['sen', 'name', 'url', 'key'],
+                         'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
                          'sen_info_path': os.path.join(conf_dir, 'sens_info_m1907.txt'),
                          'm1907_info_path': os.path.join(conf_dir, 'm1907_sens_info.txt'),
                          'src_url': [
@@ -148,8 +161,11 @@ if __name__ == "__main__":
                          #  'https://www.iqiyi.com/v_19rr7r4wdo.html',
                          #  'https://www.iqiyi.com/v_19rs76de1g.html',
                          #  'https://www.iqiyi.com/v_19ry5ybkx0.html',
-                           'https://www.iqiyi.com/v_19rroo8z7w.html?vfm=2008_aldbd',
-
+                         #  'https://www.iqiyi.com/v_19rroo8z7w.html?vfm=2008_aldbd',
+ 'https://www.iqiyi.com/v_pzqg2653vk.html',
+                           'https://www.iqiyi.com/v_29u8xeyweq0.html',
+                           'https://www.iqiyi.com/v_13pwkzhy5n0.html?vfrm=pcw_dianying&vfrmblk=E&vfrmrst=711219_dianying_float_pic_play2',
+                           'https://www.iqiyi.com/v_19rrc1tah4.html',
                          ],
                          'servers': 'https://z1.m1907.cn',
         'remove_ts': False,
@@ -163,7 +179,7 @@ if __name__ == "__main__":
   my_flag3 = not (my_flag1 or my_flag2)
   if 0:
     for j in range(len(conf['src_url'])):
-      #generate_m1907_file(th, j, my_flag1)
+      generate_m1907_file(th, j, True)
       #generate_a_new_sen(th, my_flag2)
       generate_a_new_sen(th, True)
   if 1:

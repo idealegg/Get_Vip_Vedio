@@ -18,18 +18,18 @@ move_lock =threading.Lock()
 
 def convert2ts(f4v, des=None):
   ret = [None, 0]
-  print f4v
-  print type(f4v)
+  print(f4v)
+  print(type(f4v))
   if des:
     ts = des
   else:
     ts = os.path.basename(f4v)
     ts = ts.replace('f4v', 'ts')
-  print ts
-  print type(ts)
+  print(ts)
+  print(type(ts))
   fd = os.popen('avconv -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts -y "%s" 2>&1' % (f4v, ts))
   for line in fd:
-    print line
+    print(line)
     # lasttimestamp   : 374
     res = re.search(st_pattern, line)
     if res:
@@ -55,8 +55,8 @@ def get_ts_info(ts):
 
 
 def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
-  print "exec_concat_cmd: ts_list: [%s]" % '|'.join(ts_list)
-  print "durition: %d, target: %s, cut_flag: %s" % (duration, new_target, cut_flag)
+  print("exec_concat_cmd: ts_list: [%s]" % '|'.join(ts_list))
+  print("durition: %d, target: %s, cut_flag: %s" % (duration, new_target, cut_flag))
   i = 0
   j = 0
   max_ts_a_time_in_cmd = 720
@@ -78,10 +78,10 @@ def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
       cmd = 'avconv -i "concat:%s" -c copy -y %s 2>&1' % (
         '|'.join(ts_list[i:i+ts_num]),
         new_ts_name % j)
-      print "cmd: %s" % cmd
+      print("cmd: %s" % cmd)
       fd = os.popen(cmd)
       for line in fd:
-        print line
+        print(line)
       fd.close()
       ts_list2.append(new_ts_name % j)
       i += ts_num
@@ -91,10 +91,10 @@ def exec_concat_cmd(ts_list, duration, cut_flag, new_target):
                    '|'.join(ts_list2 if len(ts_list) > max_ts_a_time_in_cmd else ts_list),
                    "-ss 00:02:10 -t %d" % (duration - 240) if cut_flag else '',
                    new_target)
-  print "cmd: %s" % cmd
+  print("cmd: %s" % cmd)
   fd = os.popen(cmd)
   for line in fd:
-    print line
+    print(line)
   fd.close()
   for ts in ts_list2:
     os.remove(ts)
@@ -105,7 +105,7 @@ def concatf4v(ts_list, duration, target, convert_flag=True, cut_flag=True):
   new_dir = os.path.dirname(ts_list[0])
   if not new_dir:
     new_dir = '.'
-  print "origin: %s, new dir: %s" % (origin, new_dir)
+  print("origin: %s, new dir: %s" % (origin, new_dir))
   os.chdir(new_dir)
   ts_list_new = map(lambda x: os.path.basename(x), ts_list)
   if not os.path.isdir(target):
@@ -115,9 +115,9 @@ def concatf4v(ts_list, duration, target, convert_flag=True, cut_flag=True):
   exec_concat_cmd(ts_list_new, duration, cut_flag, new_target)
   if os.path.isdir(target):
     if os.path.isfile(os.path.join(target, new_target)):
-      print "[%s] or [%s] already exists!\n" % (new_target, target)
+      print("[%s] or [%s] already exists!\n" % (new_target, target))
     elif not os.path.isfile(new_target):
-      print "[%s] is merged fialed!\n" % (new_target)
+      print("[%s] is merged fialed!\n" % (new_target))
     else:
       move_lock.acquire()
       shutil.move(new_target, target)
@@ -131,10 +131,10 @@ def concatf4v(ts_list, duration, target, convert_flag=True, cut_flag=True):
 def merge(src_list, target, convert_flag=True, cut_flag=True):
   ts_list = []
   duration = 0
-  print src_list
+  print(src_list)
   if convert_flag:
     for f4v in src_list:
-      print f4v
+      print(f4v)
       ts, dur = convert2ts(f4v)
       ts_list.append(ts)
       duration = dur
