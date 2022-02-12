@@ -5,6 +5,7 @@ from Common.GetSensBase import GetSensBase
 from Util.myLogging import *
 import pprint
 import subprocess
+import urllib.parse
 
 
 KEY_PATTERN = re.compile(b'#EXT-X-KEY\s*:\s*METHOD\s*=\s*([^,]+?),\s*URI\s*=\s*"([^"]+?)"')
@@ -157,16 +158,8 @@ if __name__ == "__main__":
                          'src_url': [
                          #完美关系 'https://www.iqiyi.com/v_19rxfnb3w4.html?vfrm=pcw_dianshiju&vfrmblk=F&vfrmrst=711219_dianshiju_tbrb_float_video_play3'
                          #  'https://v.youku.com/v_show/id_XNDAyMTYwMjc4MA==.html?tpa=dW5pb25faWQ9MTAzNzUzXzEwMDAwMV8wMV8wMQ&refer=sousuotoufang_market.qrwang_00002944_000000_QJFFvi_19031900'
-                         #  'https: // www.iqiyi.com / v_19rrjzvt6o.html',
-                         #  'https://www.iqiyi.com/v_19rrg0bus0.html',
-                         #  'https://www.iqiyi.com/v_19rr7r4wdo.html',
-                         #  'https://www.iqiyi.com/v_19rs76de1g.html',
-                         #  'https://www.iqiyi.com/v_19ry5ybkx0.html',
-                         #  'https://www.iqiyi.com/v_19rroo8z7w.html?vfm=2008_aldbd',
-                           #'https://www.iqiyi.com/v_pzqg2653vk.html',
-                            'https://www.iqiyi.com/v_29u8xeyweq0.html',
-                            'https://www.iqiyi.com/v_13pwkzhy5n0.html?vfrm=pcw_dianying&vfrmblk=E&vfrmrst=711219_dianying_float_pic_play2',
-                            'https://www.iqiyi.com/v_19rrc1tah4.html',
+                         urllib.parse.quote('误杀2'),
+                         #  urllib.parse.quote('长津湖'),
                          ],
                          'servers': 'https://z1.m1907.cn',
         'remove_ts': False,
@@ -178,7 +171,7 @@ if __name__ == "__main__":
   #my_flag2 = 1
   my_flag2 = my_flag1
   my_flag3 = not (my_flag1 or my_flag2)
-  if 1:
+  if 0:
     for j in range(len(conf['src_url'])):
       generate_m1907_file(th, j, True)
       #generate_a_new_sen(th, my_flag2)
