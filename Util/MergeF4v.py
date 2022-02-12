@@ -107,7 +107,7 @@ def concatf4v(ts_list, duration, target, convert_flag=True, cut_flag=True):
     new_dir = '.'
   print("origin: %s, new dir: %s" % (origin, new_dir))
   os.chdir(new_dir)
-  ts_list_new = map(lambda x: os.path.basename(x), ts_list)
+  ts_list_new = list(map(lambda x: os.path.basename(x), ts_list))
   if not os.path.isdir(target):
     new_target = target
   else:

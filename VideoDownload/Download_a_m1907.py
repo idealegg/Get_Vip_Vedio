@@ -3,10 +3,10 @@ import re
 import requests
 from Common.GetSensBase import GetSensBase
 from Util.myLogging import *
+import pprint
+import subprocess
 
 
-path_coding = 'ISO-8859-1'
-file_coding = 'Windows-1252'
 KEY_PATTERN = re.compile(b'#EXT-X-KEY\s*:\s*METHOD\s*=\s*([^,]+?),\s*URI\s*=\s*"([^"]+?)"')
 
 
@@ -60,6 +60,7 @@ def generate_a_new_sen(gsb, force=False):
     f_m1907 = open(gsb.conf['m1907_info_path'], 'rb')
     j = json.load(f_m1907)
     f_m1907.close()
+    pprint.pprint(j)
     outs = []
     error = False
     if 'data' in j:
@@ -74,12 +75,12 @@ def generate_a_new_sen(gsb, force=False):
           #req = requests.get(e['url'])
           req = gsb.get_req(e['url'])
           logger.info("req: %s" % req.content)
-          if req.content.count(b'.ts'):
+          if req.content.count(b'.ts') or len(req.content.split(b'\n')) > 10:
             if gsb.conf['direct_download_m3u8']:
-              cmd = '"G:\Program Files (x86)\FormatFactory\ffmpeg.exe" -i "%s" -c copy %s' % (e['url'], os.path.join(gsb.target_dir, "%s.mp4" % (season['name'] + e['name'])))
-              print(cmd)
-              ret = os.system(cmd)
-              return ret == 0
+              cmd = '"G:\Program Files (x86)\FormatFactory\\ffmpeg.exe" -i %s -c copy %s' % (e['url'].replace('https', 'http'), os.path.join(gsb.target_dir, "%s.mp4" % (season['name'] + e['name'])))
+              logger.info(cmd)
+              os.system(cmd)
+              return
             i = gsb.get_base_sen_id()
             m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
             f_m3u8 = open(m3u8, 'wb')
@@ -97,11 +98,11 @@ def generate_a_new_sen(gsb, force=False):
                 logger.info("req2: %s" % req2)
                 if req2:
                   if gsb.conf['direct_download_m3u8']:
-                    cmd = '"G:\Program Files (x86)\FormatFactory\ffmpeg.exe" -i "%s" -c copy %s' % (
-                    e['url'], os.path.join(gsb.target_dir, "%s.mp4" % (season['name'] + e['name'])))
-                    print(cmd)
-                    ret = os.system(cmd)
-                    return ret == 0
+                    cmd = '"G:\Program Files (x86)\FormatFactory\\ffmpeg.exe" -i %s -c copy %s' % (
+                    e['url'].replace('https', 'http'), os.path.join(gsb.target_dir, "%s.mp4" % (season['name'] + e['name'])))
+                    logger.info(cmd)
+                    os.system(cmd)
+                    return
                   i = gsb.get_base_sen_id()
                   m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
                   f_m3u8 = open(m3u8, 'wb')
@@ -162,10 +163,10 @@ if __name__ == "__main__":
                          #  'https://www.iqiyi.com/v_19rs76de1g.html',
                          #  'https://www.iqiyi.com/v_19ry5ybkx0.html',
                          #  'https://www.iqiyi.com/v_19rroo8z7w.html?vfm=2008_aldbd',
- 'https://www.iqiyi.com/v_pzqg2653vk.html',
-                           'https://www.iqiyi.com/v_29u8xeyweq0.html',
-                           'https://www.iqiyi.com/v_13pwkzhy5n0.html?vfrm=pcw_dianying&vfrmblk=E&vfrmrst=711219_dianying_float_pic_play2',
-                           'https://www.iqiyi.com/v_19rrc1tah4.html',
+                           #'https://www.iqiyi.com/v_pzqg2653vk.html',
+                            'https://www.iqiyi.com/v_29u8xeyweq0.html',
+                            'https://www.iqiyi.com/v_13pwkzhy5n0.html?vfrm=pcw_dianying&vfrmblk=E&vfrmrst=711219_dianying_float_pic_play2',
+                            'https://www.iqiyi.com/v_19rrc1tah4.html',
                          ],
                          'servers': 'https://z1.m1907.cn',
         'remove_ts': False,
@@ -177,7 +178,7 @@ if __name__ == "__main__":
   #my_flag2 = 1
   my_flag2 = my_flag1
   my_flag3 = not (my_flag1 or my_flag2)
-  if 0:
+  if 1:
     for j in range(len(conf['src_url'])):
       generate_m1907_file(th, j, True)
       #generate_a_new_sen(th, my_flag2)

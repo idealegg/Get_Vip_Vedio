@@ -339,6 +339,8 @@ class GetSensBase(threading.Thread):
         return "%s/%s" % (url[:url.rfind('/')], path)
       else:
         return "%s%s" % (url[:url[9:].find('/') + 9], path)
+    else:
+      return path
 
   def get_not_download(self):
     res = self.get_urls_from_m3u8()
@@ -393,9 +395,7 @@ class GetSensBase(threading.Thread):
               logger.info("All ts file of [%s] downloaded! So not download again!" % self.sen)
             else:
               while self.task_list and retry > 0:
-                logger.info("len: %d" % len(self.task_list))
-                logger.info("tasks:")
-                logger.info(self.task_list)
+                logger.info("len: %d, tasks: %s" % (len(self.task_list), self.task_list))
                 self.before_start_download()
                 self.start_download()
                 self.get_not_download()
