@@ -9,6 +9,7 @@ import chardet
 from Crypto.Cipher import AES
 from Util.myLogging import *
 import Util.MergeF4v
+import Util.Utility as util
 
 
 class GetSensBase(threading.Thread):
@@ -272,6 +273,16 @@ class GetSensBase(threading.Thread):
     logger.info("sens: %s\n" % cls.sen_list)
 
   @classmethod
+  def init_sen_list(cls):
+    cls.sen_lock.acquire()
+    if not cls.sen_list:
+      if os.path.exists(cls.conf['sen_info_path']):
+        j = util.get_json(cls.conf['sen_info_path'])
+        cls.sen_list = j['sen_list']
+    cls.sen_lock.release()
+    logger.info("sens: %s\n" % cls.sen_list)
+
+  @classmethod
   def is_sen_exist(cls):
     cls.gen_sens()
     return len(cls.sen_list)
@@ -376,7 +387,8 @@ class GetSensBase(threading.Thread):
     req = None
     self.check_dir()
     self.get_exist_file()
-    GetSensBase.gen_sens()
+    #GetSensBase.gen_sens()
+    GetSensBase.init_sen_list()
     while not self.stopped():
       try:
         self.sen, self.info = GetSensBase.get_a_sen()
