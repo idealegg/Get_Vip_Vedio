@@ -75,17 +75,9 @@ class DouYin:
 
     def replace_sensitive(self, s, k):
         s1 = s.replace(k, "".join(lazy_pinyin(k)))
-        ret = []
-        for c in s:
-            if c.isdigit():
-                ret.append(num_dict[c])
-            else:
-                ret.append(c)
-        s2 = "".join(ret)
-        ret = s2.replace(k, "".join(lazy_pinyin(k)))
-        if s2 == ret:
-            ret = s1
-        return ret
+        #if s1.find('69') != -1:
+        #    s1 = s1.replace('69', 'liujiu')
+        return s1
 
 
     def get_good_name(self, s, get_file=True):
@@ -111,7 +103,7 @@ class DouYin:
         for k in self.conf['sensitive_words']:
             ret = self.replace_sensitive(ret, k)
         if len(ret) > self.conf['MAX_NAME_LEN']:
-            ret = ret[:self.conf['MAX_NAME_LEN']]
+            ret = ret[:self.conf['MAX_NAME_LEN']-4] + ret[len(ret)-4:]
         return ret
 
     def get_last_time(self, d, d2):
@@ -406,19 +398,43 @@ class DouYin:
         end_t = time.time()
         logger.info("time cost: %s seconds" % (end_t - begin_t))
 
+    def get_file_type(self, f):
+        fd = open(f, 'rb')
+        buf = fd.read(8)
+        fd.close()
+        if buf[4:] != b'ftyp':
+            return '.jpg'
+        else:
+            return '.mp4'
+
     def check_sensitive(self):
+        num_dict2 = {}
+        for k in num_dict:
+            num_dict2[num_dict[k]] = k
         self.outdir = self.conf['outdir']
         logger.debug("enter check_sensitive")
         for d in os.listdir(self.outdir):
             logger.debug("enter %s" % d)
             outdir = os.path.join(self.outdir, d)
             if os.path.isdir(outdir):
-                for f in self.walk_a_dir(outdir):
+                for f in os.listdir(outdir):
                     logger.debug("check %s" % f)
                     fp = os.path.join(outdir, f)
-                    new_name = self.get_good_name(f)
+                    new_name = "".join(map(lambda x: num_dict2[x] if x in num_dict2 else x, f))
+                    #new_name = f
+                    if not f.endswith('.jpg') and not f.endswith('.mp4'):
+                        index = f.find('.')
+                        if index != -1:
+                            new_name = f[:index]
+                        new_name += self.get_file_type(fp)
+                    new_name = self.get_good_name(new_name)
                     new_fp = os.path.join(outdir, new_name)
-                    if not os.path.isfile(new_fp) and new_name != f:
+                    if new_name != f:
+                        same_num = 2
+                        origin_new_fp = new_fp
+                        while os.path.isfile(new_fp):
+                            new_fp = "".join([origin_new_fp[:-7], "_%s" % same_num, origin_new_fp[-4:]])
+                            same_num += 1
                         os.rename(fp, new_fp)
                         logger.info("rename %s to %s" % (fp, new_fp) )
 

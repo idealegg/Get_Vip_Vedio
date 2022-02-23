@@ -4,7 +4,7 @@
   "outdir": "E:\\hzw\\DouYin",
   "run_scheduler": true,
   "run_immediate": true,
-  "check_sensitive": false,
+  "check_sensitive": true,
   "shorturls": [
    "LwAJ4M7",
 "LwSEKSN",
@@ -424,7 +424,6 @@
     "\u9732",
     "\u8f66",
     "\u62cd",
-    "69",
     "\u5904\u5973"
   ],
   "headers": {
