@@ -8,6 +8,7 @@ import pprint
 import traceback
 from apscheduler.schedulers.blocking import BlockingScheduler
 from Util.myLogging import *
+from pypinyin import lazy_pinyin
 
 
 """
@@ -24,16 +25,19 @@ headers = {
     "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"
 }
 
-sensitive_words = {
-    u'断桥残雪': 'dqcx',
-    u'中国医生': 'zgys',
-    u'偷': 'tou',
-    u'露': 'lou',
-    u'车': 'che',
-    u'拍': 'pai',
-}
+sensitive_words = [
+    u'断桥残雪',
+    u'中国医生',
+    u'偷',
+    u'露',
+    u'车',
+    u'拍',
+    u'女',
+]
 MAX_NAME_LEN = 80
 """
+
+num_dict={"0":u"零","1":u"一","2":u"二","3":u"三","4":u"四","5":u"五","6":u"六","7":u"七", "8": "八", "9": "九"}
 
 class DouYin:
     def __init__(self, jconf=None):
@@ -69,6 +73,21 @@ class DouYin:
     def walk_a_dir(self, d):
         return [x for x in os.listdir(d) if x.endswith('.mp4') or x.endswith('.jpg')]
 
+    def replace_sensitive(self, s, k):
+        s1 = s.replace(k, "".join(lazy_pinyin(k)))
+        ret = []
+        for c in s:
+            if c.isdigit():
+                ret.append(num_dict[c])
+            else:
+                ret.append(c)
+        s2 = "".join(ret)
+        ret = s2.replace(k, "".join(lazy_pinyin(k)))
+        if s2 == ret:
+            ret = s1
+        return ret
+
+
     def get_good_name(self, s, get_file=True):
         '''⒈CJK扩充集A 3400→4DB5
         ⒉康熙字典214部首 2F00→2FD5
@@ -90,7 +109,7 @@ class DouYin:
                 res.append(replace_char)
         ret = ''.join(res).strip('_-')
         for k in self.conf['sensitive_words']:
-            ret = ret.replace(k, self.conf['sensitive_words'][k])
+            ret = self.replace_sensitive(ret, k)
         if len(ret) > self.conf['MAX_NAME_LEN']:
             ret = ret[:self.conf['MAX_NAME_LEN']]
         return ret
@@ -226,6 +245,8 @@ class DouYin:
             name = user_info['user_info']['nickname']
             logger.info(name)
             name = self.get_good_name(name, False)
+            if len(name) == 0:
+                name = uid
             same_num = 2
             origin_good_name = name
             while name in self.dir_names and self.dir_names[name] != uid:
@@ -385,10 +406,30 @@ class DouYin:
         end_t = time.time()
         logger.info("time cost: %s seconds" % (end_t - begin_t))
 
+    def check_sensitive(self):
+        self.outdir = self.conf['outdir']
+        logger.debug("enter check_sensitive")
+        for d in os.listdir(self.outdir):
+            logger.debug("enter %s" % d)
+            outdir = os.path.join(self.outdir, d)
+            if os.path.isdir(outdir):
+                for f in self.walk_a_dir(outdir):
+                    logger.debug("check %s" % f)
+                    fp = os.path.join(outdir, f)
+                    new_name = self.get_good_name(f)
+                    new_fp = os.path.join(outdir, new_name)
+                    if not os.path.isfile(new_fp) and new_name != f:
+                        os.rename(fp, new_fp)
+                        logger.info("rename %s to %s" % (fp, new_fp) )
+
+
 if __name__ == "__main__":
     setup_logging()
     dy = DouYin()
     #dy = DouYin('cd_buy_house.json')
+    if dy.conf['check_sensitive']:
+        dy.check_sensitive()
+        exit(0)
     if dy.conf['run_immediate']:
         dy.do_work()
     if dy.conf['run_scheduler']:
