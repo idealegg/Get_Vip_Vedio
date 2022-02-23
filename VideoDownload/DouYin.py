@@ -70,6 +70,24 @@ class DouYin:
         list(map(lambda x: self.dir_names.update({self.dir_uid_map[x]['name']:x}), self.dir_uid_map))
         self.update_url_name_map()
 
+    def get_req(self, url, **kwargs):
+        retry = self.conf['request_retry']
+        req = None
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = self.conf['request_timeout']
+        while retry > 0:
+            try:
+                req = requests.get(url, **kwargs)
+            except Exception as e:
+                logger.info("Exception in req [%s]: %s" % (url, e))
+            finally:
+                retry -= 1
+            if req:
+                # logger.info(dir(req))
+                if req.status_code == 200:
+                    break
+        return req
+
     def walk_a_dir(self, d):
         return [x for x in os.listdir(d) if x.endswith('.mp4') or x.endswith('.jpg')]
 
@@ -184,7 +202,7 @@ class DouYin:
     def get_jpgs(self, aid, name):
         vfs = []
         url = 'https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/?item_ids=%s' % aid
-        r = requests.get(url, headers=self.conf['headers'])
+        r = self.get_req(url, headers=self.conf['headers'])
         num = 1
         if r.status_code == 200:
             j = json.loads(r.content)
@@ -196,7 +214,7 @@ class DouYin:
 
     def get_sec(self, input_s):
         input_url = 'https://v.douyin.com/%s/' %  input_s
-        req_start_page = requests.get(url=input_url, headers=self.conf['headers'], allow_redirects=False)
+        req_start_page = self.get_req(url=input_url, headers=self.conf['headers'], allow_redirects=False)
         location = req_start_page.headers['location']
         s = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
         print(s)
@@ -209,7 +227,7 @@ class DouYin:
         month = list(range(1, 13))
         input_url = 'https://v.douyin.com/%s/' %  input_s
         logger.info(input_url)
-        req_start_page = requests.get(url=input_url, headers=self.conf['headers'], allow_redirects=False)
+        req_start_page = self.get_req(url=input_url, headers=self.conf['headers'], allow_redirects=False)
         if req_start_page.status_code != 302:
             logger.error('get start page failed! [%s][%s]' % (input_url, req_start_page))
             return
@@ -217,7 +235,7 @@ class DouYin:
         logger.info(location)
         sec_uid = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
         logger.info(sec_uid)
-        req_name = requests.get(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
+        req_name = self.get_req(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
                                headers=self.conf['headers'])
         if req_name.status_code != 200:
             logger.error('get name failed! [%s][%s]' % (req_name.url, req_name))
@@ -295,7 +313,7 @@ class DouYin:
                     '_signature': 'PtCNCgAAXljWCq93QOKsFT7QjR'
                 }
                 list_url = 'https://www.iesdouyin.com/web/api/v2/aweme/post/'
-                req = requests.get(url=list_url, params=params, headers=self.conf['headers'])
+                req = self.get_req(url=list_url, params=params, headers=self.conf['headers'])
                 logger.info(req)
                 if req.status_code != 200:
                     logger.error("get list error: [%s][%s][%s][%s]" % (name, input_s, list_url, params))
@@ -325,7 +343,7 @@ class DouYin:
                             vfs.append((videourl, '%s_%s.mp4' % (vn, videotitle)))
                         skipped = True
                         for vf in vfs:
-                            with requests.get(url=vf[0], headers=self.conf['headers']) as req2:
+                            with self.get_req(url=vf[0], headers=self.conf['headers']) as req2:
                                 logger.info(req2)
                                 if req2.status_code == 200:
                                     md5 = hashlib.md5(req2.content).hexdigest()
@@ -420,23 +438,24 @@ class DouYin:
                 for f in os.listdir(outdir):
                     logger.debug("check %s" % f)
                     fp = os.path.join(outdir, f)
-                    new_name = "".join(map(lambda x: num_dict2[x] if x in num_dict2 else x, f))
-                    #new_name = f
-                    if not f.endswith('.jpg') and not f.endswith('.mp4'):
-                        index = f.find('.')
-                        if index != -1:
-                            new_name = f[:index]
-                        new_name += self.get_file_type(fp)
-                    new_name = self.get_good_name(new_name)
-                    new_fp = os.path.join(outdir, new_name)
-                    if new_name != f:
-                        same_num = 2
-                        origin_new_fp = new_fp
-                        while os.path.isfile(new_fp):
-                            new_fp = "".join([origin_new_fp[:-7], "_%s" % same_num, origin_new_fp[-4:]])
-                            same_num += 1
-                        os.rename(fp, new_fp)
-                        logger.info("rename %s to %s" % (fp, new_fp) )
+                    if os.path.isfile(fp):
+                        #new_name = "".join(map(lambda x: num_dict2[x] if x in num_dict2 else x, f))
+                        new_name = f
+                        if not f.endswith('.jpg') and not f.endswith('.mp4'):
+                            index = f.find('.')
+                            if index != -1:
+                                new_name = f[:index]
+                            new_name += self.get_file_type(fp)
+                        new_name = self.get_good_name(new_name)
+                        new_fp = os.path.join(outdir, new_name)
+                        if new_name != f:
+                            same_num = 2
+                            origin_new_fp = new_fp
+                            while os.path.isfile(new_fp):
+                                new_fp = "".join([origin_new_fp[:-7], "_%s" % same_num, origin_new_fp[-4:]])
+                                same_num += 1
+                            os.rename(fp, new_fp)
+                            logger.info("rename %s to %s" % (fp, new_fp) )
 
 
 if __name__ == "__main__":

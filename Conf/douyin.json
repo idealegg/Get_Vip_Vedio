@@ -4,7 +4,9 @@
   "outdir": "E:\\hzw\\DouYin",
   "run_scheduler": true,
   "run_immediate": true,
-  "check_sensitive": true,
+  "check_sensitive": false,
+  "request_timeout": 30.0,
+  "request_retry": 3,
   "shorturls": [
    "LwAJ4M7",
 "LwSEKSN",
