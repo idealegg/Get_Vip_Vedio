@@ -398,7 +398,10 @@ class DouYin:
         self.reload()
         #exit(0)
         begin_t = time.time()
-        for short_url in self.shorturls:
+        shorturls = self.shorturls
+        if "first_several_only" in self.conf and self.conf["first_several_only"]:
+            shorturls = self.shorturls[:self.conf["first_several_only"]]
+        for short_url in shorturls:
             if short_url not in self.checked:
                 self.download_one(short_url)
                 self.checked.add(short_url)

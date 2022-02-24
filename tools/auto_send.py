@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from pywinauto.application import Application
+import pywinauto
 from apscheduler.schedulers.blocking import BlockingScheduler
 import keyboard
 from Util.myLogging import *
@@ -126,20 +127,56 @@ def to_send():
     logger.info("length of chat list: %s" % len(chat_list.items()))
     logger.info(u"查找 输入(Edit)")
     input_c = w.child_window(control_type='Edit', title='输入')
-    while not input_c.has_keyboard_focus():  # 需要获取键盘焦点
-        w_win32.send_keystrokes('{TAB}')
+    # 特殊处理 '订阅号'
+    if list(filter(lambda x: (x.window_text() == '订阅号') and x.is_selected(), chat_list.items())):
+        logger.info("当前选中 '订阅号'")
+        move_up_down(-1, w_win32)
+        if list(filter(lambda x: (x.window_text() == '订阅号') and x.is_selected(), chat_list.items())):
+            logger.info("Tab 无效， 查找'在独立窗口中打开'按钮")
+            sp_btn = w.child_window(control_type='Button', title='在独立窗口中打开')
+            logger.info("键盘焦点定位 '在独立窗口中打开'按钮")
+            while not sp_btn.has_keyboard_focus():  # 需要获取键盘焦点
+                w_win32.send_keystrokes('{TAB}')
+        else:
+            logger.info("Tab 有效")
+    else:
+        chose_item = list(filter(lambda x: x.is_selected(), chat_list.items()))[0]
+        logger.info("当前选中 '%s'" % chose_item.window_text())
+        try:
+            input_c.has_keyboard_focus()
+        except pywinauto.findwindows.ElementNotFoundError:
+            logger.info("输入(Edit) 无效")
+            move_up_down(-1, w_win32)
+            if chose_item == list(filter(lambda x: x.is_selected(), chat_list.items()))[0]:
+                logger.info("Tab 无效， 查找'输入'按钮")
+                sp_btn = w.child_window(control_type='Button', title='输入')
+                logger.info("键盘焦点定位 '输入'按钮")
+                while not sp_btn.has_keyboard_focus():  # 需要获取键盘焦点
+                    w_win32.send_keystrokes('{TAB}')
+                logger.info("点击 '输入'按钮")
+                w_win32.send_keystrokes('~')
+            else:
+                logger.info("Tab 有效")
+        else:
+            logger.info("键盘焦点定位 '输入'文本框")
+            while not input_c.has_keyboard_focus():  # 需要获取键盘焦点
+                w_win32.send_keystrokes('{TAB}')
+    logger.info("键盘焦点定位 聊天第一项")
     while not list(filter(lambda x: (x.window_text() == '大情人') and x.is_selected(), chat_list.items())):
         move_up_down(-1, w_win32)
     #chat_list.wait('exists visible', timeout=timeout)
+    logger.info("键盘焦点定位 聊天 '%s'" % session)
     while not list(filter(lambda x: (x.window_text() == session) and x.is_selected(), chat_list.items())):
             move_up_down(1, w_win32)
             #chat_list.wait('exists visible', timeout=timeout)
     #logger.info(u"等待 输入(Edit) to be ready")
     #input_c.wait('exists ready', timeout=timeout)
+    logger.info("键盘焦点定位 '输入'文本框")
     while not input_c.has_keyboard_focus(): # 需要获取键盘焦点
         w_win32.send_keystrokes('{TAB}')
     logger.info(u"输入 输入(Edit)")
     w_win32.send_chars(word)
+    logger.info(u"发送")
     w_win32.send_keystrokes('%S')
     if debug:
         input_c.click_input()
