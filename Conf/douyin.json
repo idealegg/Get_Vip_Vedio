@@ -3,7 +3,7 @@
   "check_all": false,
   "outdir": "E:\\hzw\\DouYin",
   "run_scheduler": true,
-  "run_immediate": true,
+  "run_immediate": false,
   "check_sensitive": false,
   "request_timeout": 30.0,
   "request_retry": 3,
@@ -427,7 +427,10 @@
     "\u9732",
     "\u8f66",
     "\u62cd",
-    "\u5904\u5973"
+    "\u5904\u5973",
+    "\u7c89",
+    "\u8096\u6218",
+    "\u738b\u724c"
   ],
   "headers": {
     "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Mobile Safari/537.36"

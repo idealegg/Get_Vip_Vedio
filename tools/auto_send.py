@@ -132,23 +132,28 @@ def to_send():
         logger.info("当前选中 '订阅号'")
         move_up_down(-1, w_win32)
         if list(filter(lambda x: (x.window_text() == '订阅号') and x.is_selected(), chat_list.items())):
-            logger.info("Tab 无效， 查找'在独立窗口中打开'按钮")
+            logger.info("Up 无效， 查找'在独立窗口中打开'按钮")
             sp_btn = w.child_window(control_type='Button', title='在独立窗口中打开')
             logger.info("键盘焦点定位 '在独立窗口中打开'按钮")
             while not sp_btn.has_keyboard_focus():  # 需要获取键盘焦点
                 w_win32.send_keystrokes('{TAB}')
         else:
-            logger.info("Tab 有效")
+            logger.info("Up 有效")
     else:
-        chose_item = list(filter(lambda x: x.is_selected(), chat_list.items()))[0]
-        logger.info("当前选中 '%s'" % chose_item.window_text())
+        chose_item_not_found = False
+        try:
+            chose_item = list(filter(lambda x: x.is_selected(), chat_list.items()))[0]
+            logger.info("当前选中 '%s'" % chose_item.window_text())
+        except IndexError:
+            chose_item_not_found = True
+            logger.info("当前选中 未找到")
         try:
             input_c.has_keyboard_focus()
         except pywinauto.findwindows.ElementNotFoundError:
             logger.info("输入(Edit) 无效")
             move_up_down(-1, w_win32)
-            if chose_item == list(filter(lambda x: x.is_selected(), chat_list.items()))[0]:
-                logger.info("Tab 无效， 查找'输入'按钮")
+            if chose_item_not_found or chose_item == list(filter(lambda x: x.is_selected(), chat_list.items()))[0]:
+                logger.info("Up 无效， 查找'输入'按钮")
                 sp_btn = w.child_window(control_type='Button', title='输入')
                 logger.info("键盘焦点定位 '输入'按钮")
                 while not sp_btn.has_keyboard_focus():  # 需要获取键盘焦点
@@ -156,7 +161,7 @@ def to_send():
                 logger.info("点击 '输入'按钮")
                 w_win32.send_keystrokes('~')
             else:
-                logger.info("Tab 有效")
+                logger.info("Up 有效")
         else:
             logger.info("键盘焦点定位 '输入'文本框")
             while not input_c.has_keyboard_focus():  # 需要获取键盘焦点

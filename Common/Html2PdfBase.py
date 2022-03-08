@@ -129,6 +129,8 @@ class Html2PdfBase(threading.Thread):
         return container.find_all('a')
 
     def get_page_title(self, item):
+        if item.has_attr('title'):
+            return item.get('title')
         return item.text.strip()
 
     def get_url_list(self, f):
@@ -158,7 +160,8 @@ class Html2PdfBase(threading.Thread):
                 url = item.get('href')
             elif item.has_attr('data-link'):
                 url = item.get('data-link')
-                text = item.get('data-title')
+                if item.has_attr('data-title'):
+                    text = item.get('data-title')
             if url and not url.startswith('http') and self.conf['append_url_before'] and 'url' in self.info and self.info['url']:
                 url = Html2PdfBase.concat_url(self.info['url'], url)
             urls[fname] = {
