@@ -9,6 +9,7 @@ import chardet
 from Crypto.Cipher import AES
 from Util.myLogging import *
 import Util.MergeF4v
+import Util.Utility as util
 
 
 class GetSensBase(threading.Thread):
@@ -128,7 +129,7 @@ class GetSensBase(threading.Thread):
     ret = None
     while not ret:
       self.session_lock.acquire()
-      t1 = filter(lambda x: not x, self.session_used)
+      t1 = list(filter(lambda x: not x, self.session_used))
       if t1:
         i = self.session_used.index(t1[0])
         self.session_used[i] = True
@@ -247,7 +248,7 @@ class GetSensBase(threading.Thread):
   @classmethod
   def parse_sen_from_line(cls, line):
     line = line.strip()
-    if line and not line.startswith('#'):
+    if line and not line.startswith(b'#'):
       logger.info(chardet.detect(line))
       line2 = line.decode('utf-8')
       fields = re.split("\s+", line2)
@@ -268,6 +269,16 @@ class GetSensBase(threading.Thread):
         for line in fd:
           cls.parse_sen_from_line(line)
         fd.close()
+    cls.sen_lock.release()
+    logger.info("sens: %s\n" % cls.sen_list)
+
+  @classmethod
+  def init_sen_list(cls):
+    cls.sen_lock.acquire()
+    if not cls.sen_list:
+      if os.path.exists(cls.conf['sen_info_path']):
+        j = util.get_json(cls.conf['sen_info_path'])
+        cls.sen_list = j['sen_list']
     cls.sen_lock.release()
     logger.info("sens: %s\n" % cls.sen_list)
 
@@ -334,10 +345,13 @@ class GetSensBase(threading.Thread):
 
   @classmethod
   def concat_url(cls, url, path):
-    if not path.startswith('/'):
-      return "%s/%s" % (url[:url.rfind('/')], path)
+    if not path.startswith('http'):
+      if not path.startswith('/'):
+        return "%s/%s" % (url[:url.rfind('/')], path)
+      else:
+        return "%s%s" % (url[:url[9:].find('/') + 9], path)
     else:
-      return "%s%s" % (url[:url[9:].find('/') + 9], path)
+      return path
 
   def get_not_download(self):
     res = self.get_urls_from_m3u8()
@@ -373,7 +387,8 @@ class GetSensBase(threading.Thread):
     req = None
     self.check_dir()
     self.get_exist_file()
-    GetSensBase.gen_sens()
+    #GetSensBase.gen_sens()
+    GetSensBase.init_sen_list()
     while not self.stopped():
       try:
         self.sen, self.info = GetSensBase.get_a_sen()
@@ -392,9 +407,7 @@ class GetSensBase(threading.Thread):
               logger.info("All ts file of [%s] downloaded! So not download again!" % self.sen)
             else:
               while self.task_list and retry > 0:
-                logger.info("len: %d" % len(self.task_list))
-                logger.info("tasks:")
-                logger.info(self.task_list)
+                logger.info("len: %d, tasks: %s" % (len(self.task_list), self.task_list))
                 self.before_start_download()
                 self.start_download()
                 self.get_not_download()
