@@ -190,7 +190,7 @@ class DouYin:
                     same_num += 1
                 os.rename(os.path.join(d, f), os.path.join(d, f2))
                 logger.info("rename in [%s]\n%s\n%s" % (d, f, f2))
-            last_num = new_num
+            last_num = "%s" % i
         return i
 
     def format_year_month(self, y, m):
@@ -286,7 +286,7 @@ class DouYin:
         if self.conf['remove_mp3']:
             self.remove_mp3(out_dir_anchor)
         md5s, stats = self.remove_dup(out_dir_anchor)
-        vn = self.reorder(out_dir_anchor, stats)
+        vn = self.reorder(out_dir_anchor, stats) + 1
         #vn = max(map(lambda x: int(x[:x.find('_')]), stats.keys()))
         if stats and not self.conf['check_all']:
             last_time = max(max(map(lambda x: x.st_mtime * 1000, stats.values())), last_time)
