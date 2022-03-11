@@ -12,6 +12,7 @@ from pypinyin import lazy_pinyin
 
 
 """
+# mp42gif: for f in *mp4; do ffmpeg -i "$f" -s 272x480 -b:v 200k -r 15 $i.gif; i=$((i+1)); done
 params = {
     'sec_uid' : 'MS4wLjABAAAAbtSlJK_BfUcuqyy8ypNouqEH7outUXePTYEcAIpY9rk',
     'count' : '200',
@@ -179,7 +180,7 @@ class DouYin:
         for f in fs:
             new_num = f[:f.find('_')]
             f2 = re.sub('^\d+_', '', f)
-            if last_num != new_num:
+            if last_num != new_num or f.endswith('.mp4'):
                 i += 1
             f2 = "%s_%s" % (i, f2)
             if f != f2:
@@ -190,7 +191,7 @@ class DouYin:
                     same_num += 1
                 os.rename(os.path.join(d, f), os.path.join(d, f2))
                 logger.info("rename in [%s]\n%s\n%s" % (d, f, f2))
-            last_num = "%s" % i
+            last_num = new_num
         return i
 
     def format_year_month(self, y, m):
@@ -245,6 +246,9 @@ class DouYin:
         uid = user_info['user_info']['uid']
         if uid in self.dir_uid_map:
             name = self.dir_uid_map[uid]['name']
+            if not ''.join(filter(lambda ch: u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62], name)):
+                name = uid
+                self.dir_uid_map[uid]['name'] = uid
             if input_s not in self.dir_uid_map[uid]['shorturl']:
                 self.dir_uid_map[uid]['shorturl'].append(input_s)
                 logger.error('uid [%s] to dual short: [%s]' % (uid, self.dir_uid_map[uid]['shorturl']))
@@ -255,7 +259,7 @@ class DouYin:
             name = user_info['user_info']['nickname']
             logger.info(name)
             name = self.get_good_name(name, False)
-            if len(name) == 0:
+            if not ''.join(filter(lambda ch: u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62], name)):
                 name = uid
             same_num = 2
             origin_good_name = name
@@ -291,7 +295,7 @@ class DouYin:
         if stats and not self.conf['check_all']:
             last_time = max(max(map(lambda x: x.st_mtime * 1000, stats.values())), last_time)
         time_pool = [self.format_year_month(x, y) for x in year for y in month]
-        time_pool.append(self.format_year_month(year[-1]+1, month[-1]))
+        time_pool.append(self.format_year_month(year[-1]+1, month[0]))
         logger.info(time_pool)
         k = len(time_pool)
         logger.info('begin download videos')
