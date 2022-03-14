@@ -122,3 +122,19 @@ $(function(){
 	var vid=GetQueryString('id');
 
   "$('#hdMd5').val('a16db66fa7b078b604db14324ae7cea9');"
+
+
+12.
+>>> j1['data'][0]['source']['eps'][0].keys()
+dict_keys(['name', 'url'])
+>>> j1['data'][0]['source']['eps'][0]
+{'name': '第01集', 'url': 'https://s3.fsvod1.com/20220224/UpX5BQRk/index.m3u8'}
+>>> j2 = j1['data'][0]['source']['eps']
+>>> len(j2)
+1013
+>>> j2[919]
+{'name': '第920集', 'url': 'https://s3.fsvod1.com/20220225/qpYSXioB/index.m3u8'}
+>>> for i in range(919, 1014):
+...     cmd = 'ffmpeg -i %s -c copy %s.mp4' % (j2[i]['url'], j2[i]['name'])
+...     os.system(cmd)
+...

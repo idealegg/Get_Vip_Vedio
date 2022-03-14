@@ -190,6 +190,8 @@ class GetSensBase(threading.Thread):
         logger.info("%s [%d]:\n\treq: [%s]\n\tencoding: %s\n\theader: %s\n" % (self.sen, i, req2, req2.encoding, req2.headers))
         if req2.status_code == 200:
           if 'key' in self.info and self.info['key']:
+            if isinstance(self.info['key'], str):
+              self.info['key'] = self.info['key'].encode('utf8')
             cryptor = AES.new(self.info['key'], AES.MODE_CBC, self.info['key'])
             f_content = cryptor.decrypt(req2.content)
           else:
@@ -289,7 +291,7 @@ class GetSensBase(threading.Thread):
 
   @classmethod
   def get_a_sen(cls):
-    ret = (None, None)
+    ret = None
     cls.sen_lock.acquire()
     if cls.sen_list and cls.sen_no < len(cls.sen_list):
       cls.sen_no += 1
@@ -391,7 +393,8 @@ class GetSensBase(threading.Thread):
     GetSensBase.init_sen_list()
     while not self.stopped():
       try:
-        self.sen, self.info = GetSensBase.get_a_sen()
+        self.info = GetSensBase.get_a_sen()
+        self.sen = str(self.info['sen'])
         if self.sen:
           merge_again = False
           copy_again = False

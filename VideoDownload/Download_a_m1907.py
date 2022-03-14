@@ -51,18 +51,21 @@ def check_key(con, uri_dir):
   res = re.search(KEY_PATTERN, con)
   if res:
     logger.info("Encrypt method: %s, Key uri: %s\n" % (res.group(1), res.group(2)))
-    url = "%s%s" % (uri_dir, res.group(2))
+    url = "%s%s" % (uri_dir, res.group(2).decode('utf8'))
     logger.info("URL: %s\n" % url)
     req = requests.get(url)
     logger.info("req: %s" % req.content)
-    ret = req.content
+    ret = req.content.decode('utf8')
     req.close()
     return ret
   return ''
 
 
 def save_sen(gsb, m1907_one_info, sens_info, req, e, season):
-  il = list(filter(lambda x: x['m1907_src_url'] == m1907_one_info['m1907_src_url'], sens_info['sen_list']))
+  if gsb.conf['is_one_sen_a_url']:
+    il = list(filter(lambda x: x['m1907_src_url'] == m1907_one_info['m1907_src_url'], sens_info['sen_list']))
+  else:
+    il = ''
   cur_sen = {}
   if il:
     cur_sen = il[0]
@@ -70,11 +73,12 @@ def save_sen(gsb, m1907_one_info, sens_info, req, e, season):
   else:
     i = gsb.get_base_sen_id()
     sens_info['sen_list'].append(cur_sen)
+  logger.info("save %s.m3u8" % i)
   m3u8 = os.path.join(gsb.store_dir, "%d.m3u8" % i)
   f_m3u8 = open(m3u8, 'wb')
   f_m3u8.write(req.content)
   f_m3u8.close()
-  uri_dir = e['url'][:e['url'].rfind('/') + 1]
+  uri_dir = e['url'][:e['url'].find('/', e['url'].find('//')+2) + 1]
   cur_sen.update({
     'sen': i,
     'm3u8': m3u8,
@@ -87,7 +91,7 @@ def save_sen(gsb, m1907_one_info, sens_info, req, e, season):
 
 def generate_a_new_sen(gsb, m1907_one_info, is_force=False):
   f_conf = gsb.conf['sen_info_path']
-  sens_info = {}
+  sens_info = {'sen_list':[]}
   if not is_force and os.path.isfile(f_conf):
     sens_info = util.get_json(f_conf)
   logger.info("To generate a sens_info file:\n")
@@ -97,7 +101,7 @@ def generate_a_new_sen(gsb, m1907_one_info, is_force=False):
     error = False
     if 'data' in m1907_one_info:
       for season in m1907_one_info['data']:
-        for e in season['source']['eps']:
+        for e in season['source']['eps'][gsb.conf['start_sen']:]:
           logger.info("e['url']: %s" % e['url'])
           if e['url'].endswith('playlist.m3u8'):
             logger.info("Skip it!")
@@ -159,7 +163,7 @@ def a():
 if __name__ == "__main__":
   setup_logging()
   #RedirectOut.RedirectOut.__redirection__('out_%s.log' % time.strftime("%Y-%m-%d_%H%M%S"))
-  conf={'base_dir': r'G:\hzw',
+  conf={'base_dir': r'C:\hzw',
         'direct_download_m3u8': False,
                          'check_downloaded_retry': 5,
                          'session_number': 4,
@@ -168,12 +172,15 @@ if __name__ == "__main__":
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
                          'sen_info_path': os.path.join(conf_dir, 'sens_info_m1907.json'),
                          'm1907_info_path': os.path.join(conf_dir, 'm1907_sens_info.json'),
+                         'start_sen': 908,
+                         'is_one_sen_a_url': False,
                          'src_url': [
                          #完美关系 'https://www.iqiyi.com/v_19rxfnb3w4.html?vfrm=pcw_dianshiju&vfrmblk=F&vfrmrst=711219_dianshiju_tbrb_float_video_play3'
                          #  'https://v.youku.com/v_show/id_XNDAyMTYwMjc4MA==.html?tpa=dW5pb25faWQ9MTAzNzUzXzEwMDAwMV8wMV8wMQ&refer=sousuotoufang_market.qrwang_00002944_000000_QJFFvi_19031900'
                          #urllib.parse.quote('误杀2'),
                           # urllib.parse.quote('长津湖'),
-                           urllib.parse.quote('我和我的父辈'),
+                          # urllib.parse.quote('我和我的父辈'),
+                           urllib.parse.quote('海贼王'),
                          ],
                          'servers': 'https://z1.m1907.cn',
         'remove_ts': False,
@@ -182,7 +189,7 @@ if __name__ == "__main__":
   th = GetSensBase(conf)
   th.check_dir()
   th.get_exist_file()
-  if 1:
+  if 0:
     generate_m1907_file(th)
   if 1:
     th_list = [th]
