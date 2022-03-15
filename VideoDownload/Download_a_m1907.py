@@ -183,7 +183,7 @@ if __name__ == "__main__":
                            urllib.parse.quote('海贼王'),
                          ],
                          'servers': 'https://z1.m1907.cn',
-        'remove_ts': False,
+        'remove_ts': True,
         'headers': {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36"}
                          }
   th = GetSensBase(conf)

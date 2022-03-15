@@ -297,7 +297,7 @@ class GetSensBase(threading.Thread):
       cls.sen_no += 1
       ret = cls.sen_list[cls.sen_no-1]
     cls.sen_lock.release()
-    logger.info("get_a_sen: %s\n" % list(ret))
+    logger.info("get_a_sen: %s\n" % ret)
     return ret
 
   def sen_number_equal(self, f):
@@ -394,8 +394,8 @@ class GetSensBase(threading.Thread):
     while not self.stopped():
       try:
         self.info = GetSensBase.get_a_sen()
-        self.sen = str(self.info['sen'])
-        if self.sen:
+        if self.info:
+          self.sen = str(self.info['sen'])
           merge_again = False
           copy_again = False
           f_list = []
