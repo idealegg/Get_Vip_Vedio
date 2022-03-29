@@ -60,6 +60,7 @@ class DouYin:
         self.dup1 = []
         self.dup2 = []
         self.news = []
+        self.newsid = []
         self.dir_uid_map = {}
         user_info_json = self.conf['user_info_json']
         self.dir_uid_file = os.path.join(self.outdir, user_info_json)
@@ -357,6 +358,8 @@ class DouYin:
                                             v.write(req2.content)
                                         md5s[md5] = vf[1]
                                         self.news.append(vfile)
+                                        if name not in self.newsid:
+                                            self.newsid.append(name)
                                         skipped = False
                                     else:
                                         logger.warning("skip same file [%s][%s]"%(md5s[md5], md5))
@@ -418,6 +421,8 @@ class DouYin:
         self.update_url_name_map()
         logger.info(pprint.pformat(self.news))
         logger.info(len(self.news))
+        logger.info(self.newsid)
+        logger.info("%s/%s" % (len(self.newsid), len(shorturls)))
         logger.info(pprint.pformat(self.dup1))
         logger.info(pprint.pformat(self.dup2))
         end_t = time.time()

@@ -2,6 +2,7 @@
 import requests
 from Util.myLogging import *
 from Common.Html2PdfBase import Html2PdfBase
+import pprint
 
 
 class BoHaiXiaoLi(Html2PdfBase):
@@ -38,8 +39,12 @@ class BoHaiXiaoLi(Html2PdfBase):
             req = requests.get(iurl, headers=self.conf['headers2'], params=self.conf['params'])
             if req.status_code == 200:
                 ij = json.loads(req.content)
-                import pprint
                 pprint.pprint(ij)
+                if 'article_list' not in ij['getalbum_resp']:
+                    i -= 1
+                    fname = "%s_%s.pdf" % (self.sen, i-1)
+                    begin_msgid = urls[fname]['msgid']
+                    continue
                 for item in ij['getalbum_resp']['article_list']:
                     level = 0
                     fname = "%s_%s.pdf" % (self.sen, i)
