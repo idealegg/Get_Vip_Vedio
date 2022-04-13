@@ -227,15 +227,20 @@ class DouYin:
         now_t2 = int(time.mktime(now_t) * 1000)
         year = list(range(2018, now_t.tm_year+1))
         month = list(range(1, 13))
-        input_url = 'https://v.douyin.com/%s/' %  input_s
-        logger.info(input_url)
-        req_start_page = self.get_req(url=input_url, headers=self.conf['headers'], allow_redirects=False)
-        if req_start_page.status_code != 302:
-            logger.error('get start page failed! [%s][%s]' % (input_url, req_start_page))
-            return
-        location = req_start_page.headers['location']
-        logger.info(location)
-        sec_uid = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
+        is_sec_uid = len(input_s) != 7
+        if is_sec_uid:
+            sec_uid = input_s
+            input_url = input_s
+        else:
+            input_url = 'https://v.douyin.com/%s/' %  input_s
+            logger.info(input_url)
+            req_start_page = self.get_req(url=input_url, headers=self.conf['headers'], allow_redirects=False)
+            if req_start_page.status_code != 302:
+                logger.error('get start page failed! [%s][%s]' % (input_url, req_start_page))
+                return
+            location = req_start_page.headers['location']
+            logger.info(location)
+            sec_uid = re.findall('(?<=sec_uid=)[a-z，A-Z，0-9, _, -]+', location, re.M | re.I)[0]
         logger.info(sec_uid)
         req_name = self.get_req(url='https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid={}'.format(sec_uid),
                                headers=self.conf['headers'])
@@ -250,10 +255,15 @@ class DouYin:
             if not ''.join(filter(lambda ch: u'\u4e00' <= ch <= u'\u9fff' or ch in string.printable[:62], name)):
                 name = uid
                 self.dir_uid_map[uid]['name'] = uid
+            for su in self.dir_uid_map[uid]['shorturl']:
+                if su not in self.shorturls:
+                    self.dir_uid_map[uid]['shorturl'].remove(su)
             if input_s not in self.dir_uid_map[uid]['shorturl']:
                 self.dir_uid_map[uid]['shorturl'].append(input_s)
                 logger.error('uid [%s] to dual short: [%s]' % (uid, self.dir_uid_map[uid]['shorturl']))
-            if 'sec_uid' in self.dir_uid_map[uid] and sec_uid != self.dir_uid_map[uid]['sec_uid']:
+            if 'sec_uid' not in self.dir_uid_map[uid]:
+                self.dir_uid_map[uid]['sec_uid'] = sec_uid
+            elif sec_uid != self.dir_uid_map[uid]['sec_uid']:
                 logger.error("sec id diff! [%s][%s][%s], old: [%s], new: [%s]" %
                              (uid, name, input_s, self.dir_uid_map[uid]['sec_uid'], sec_uid))
         else:
@@ -295,6 +305,8 @@ class DouYin:
         #vn = max(map(lambda x: int(x[:x.find('_')]), stats.keys()))
         if stats and not self.conf['check_all']:
             last_time = max(max(map(lambda x: x.st_mtime * 1000, stats.values())), last_time)
+        self.dir_uid_map[uid]['last_last_time'] = last_time
+        self.dir_uid_map[uid]['last_total_count'] = len(stats)
         time_pool = [self.format_year_month(x, y) for x in year for y in month]
         time_pool.append(self.format_year_month(year[-1]+1, month[0]))
         logger.info(time_pool)
@@ -396,7 +408,8 @@ class DouYin:
         for url in self.shorturls:
             for k in self.dir_uid_map:
                 if self.dir_uid_map[k]['shorturl'][0] == url:
-                    outs.append('%s %s %s' % (url, self.dir_uid_map[k]['name'], self.dir_uid_map[k]['nickname']))
+                    outs.append('%s %s %s %s' % (url, self.dir_uid_map[k]['name'], self.dir_uid_map[k]['nickname'],
+                       self.dir_uid_map[k]['sec_uid'] if "sec_uid" in self.dir_uid_map[k] else ""))
                     break
         fd.write('\n'.join(outs).encode('utf8'))
         fd.close()
