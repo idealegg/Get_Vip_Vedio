@@ -221,7 +221,7 @@ if __name__ == "__main__":
         'misfire_grace_time': 600
     }
     scheduler = BlockingScheduler(job_defaults=job_defaults, timezone='Asia/Shanghai')
-    scheduler.add_job(to_send, 'cron', hour=19, minute=30)
+    #scheduler.add_job(to_send, 'cron', hour=19, minute=30)
     scheduler.add_job(start_todesk, 'cron', hour=20, minute=30)
     #scheduler.add_job(stop_todesk, 'cron', day_of_week='0-4', hour=8, minute=30)
     scheduler.start()

@@ -38,7 +38,7 @@ def generate_m1907_file(gsb, is_force=False):
                              'm1907_sign_url': sign_url,
                              'm1907_url': url,
                              'm1907_status': 'parsed',
-                             'force_reset': False,
+                             'force_reset': True,
                              }
       m1907_info[src_url].update(json.loads(req.content.decode('utf8')))
       util.save_json(m1907_info, f_conf)
@@ -101,7 +101,7 @@ def generate_a_new_sen(gsb, m1907_one_info, is_force=False):
     error = False
     if 'data' in m1907_one_info:
       for season in m1907_one_info['data']:
-        for e in season['source']['eps'][gsb.conf['start_sen']:]:
+        for e in season['source']['eps'][gsb.conf['start_sen']-1:]:
           logger.info("e['url']: %s" % e['url'])
           if e['url'].endswith('playlist.m3u8'):
             logger.info("Skip it!")
@@ -172,7 +172,7 @@ if __name__ == "__main__":
                          'sen_field_name': ['sen', 'm3u8', 'name', 'url'],
                          'sen_info_path': os.path.join(conf_dir, 'sens_info_m1907.json'),
                          'm1907_info_path': os.path.join(conf_dir, 'm1907_sens_info.json'),
-                         'start_sen': 908,
+                         'start_sen': 1014,
                          'is_one_sen_a_url': False,
                          'src_url': [
                          #完美关系 'https://www.iqiyi.com/v_19rxfnb3w4.html?vfrm=pcw_dianshiju&vfrmblk=F&vfrmrst=711219_dianshiju_tbrb_float_video_play3'
@@ -183,14 +183,14 @@ if __name__ == "__main__":
                            urllib.parse.quote('海贼王'),
                          ],
                          'servers': 'https://z1.m1907.cn',
-        'remove_ts': True,
+        'remove_ts': False,
         'headers': {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36"}
                          }
   th = GetSensBase(conf)
   th.check_dir()
   th.get_exist_file()
   if 0:
-    generate_m1907_file(th)
+    generate_m1907_file(th, True)
   if 1:
     th_list = [th]
     th.start()
