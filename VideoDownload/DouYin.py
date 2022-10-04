@@ -210,7 +210,8 @@ class DouYin:
             j = json.loads(r.content)
             for item in j['item_list']:
                 for im in item['images']:
-                    vfs.append((im['url_list'][0], "%s_%s.jpg" % (name, num)))
+                    durls = list(filter(lambda x: x.count('jpeg?'), im['url_list']))
+                    vfs.append((durls[0] if durls else im['url_list'][0], "%s_%s.jpg" % (name, num)))
                     num += 1
         return vfs
 
